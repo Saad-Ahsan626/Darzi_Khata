@@ -76,8 +76,26 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
                 ),
               ),
               data: (orders) {
-                // In the future, apply _selectedFilterIndex logic here
-                final displayOrders = orders;
+                final now = DateTime.now();
+                final today = DateTime(now.year, now.month, now.day);
+                
+                final displayOrders = orders.where((order) {
+                  final orderDate = DateTime(order.deliveryDate.year, order.deliveryDate.month, order.deliveryDate.day);
+                  
+                  switch (_selectedFilterIndex) {
+                    case 1: // Today
+                      return orderDate.isAtSameMomentAs(today);
+                    case 2: // This Week
+                      final weekFromNow = today.add(const Duration(days: 7));
+                      return (orderDate.isAtSameMomentAs(today) || orderDate.isAfter(today)) && 
+                             (orderDate.isBefore(weekFromNow) || orderDate.isAtSameMomentAs(weekFromNow));
+                    case 3: // Overdue
+                      return orderDate.isBefore(today) && order.status != 'Delivered';
+                    case 0: // All
+                    default:
+                      return true;
+                  }
+                }).toList();
 
                 if (displayOrders.isEmpty) {
                   return _buildEmptyState();

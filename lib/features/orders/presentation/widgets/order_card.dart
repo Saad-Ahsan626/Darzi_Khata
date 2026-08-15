@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tailor_khata/core/theme/app_colors.dart';
 import 'package:tailor_khata/features/orders/domain/entities/order.dart';
+import 'package:tailor_khata/features/customers/presentation/providers/customers_notifier.dart';
 import 'package:intl/intl.dart';
 
-class OrderCard extends StatelessWidget {
+class OrderCard extends ConsumerWidget {
   final Order order;
 
   const OrderCard({super.key, required this.order});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // Determine status color
     Color statusColor;
     Color statusBgColor;
@@ -34,8 +36,29 @@ class OrderCard extends StatelessWidget {
     final balance = order.totalAmount - order.advancePaid;
     final isPaid = balance <= 0;
 
-    // In a real app we'd fetch the customer name via customerId
-    final customerName = 'Customer ${order.customerId.substring(0, 4)}';
+    final customersAsync = ref.watch(customersNotifierProvider);
+    String customerName = 'Unknown Customer';
+    customersAsync.whenData((customers) {
+      final cList = customers.where((c) => c.id == order.customerId).toList();
+      if (cList.isNotEmpty) {
+        customerName = cList.first.name;
+      }
+    });
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final delivery = DateTime(order.deliveryDate.year, order.deliveryDate.month, order.deliveryDate.day);
+
+    Color deliveryColor = AppColors.charcoalThread;
+    String deliveryLabel = DateFormat('MMM d, yyyy').format(order.deliveryDate);
+
+    if (delivery.isBefore(today) && order.status != 'Delivered') {
+      deliveryColor = AppColors.seamRed;
+      deliveryLabel = 'Overdue · ${DateFormat('MMM d').format(order.deliveryDate)}';
+    } else if (delivery.isAtSameMomentAs(today)) {
+      deliveryColor = AppColors.brassTape;
+      deliveryLabel = 'Due today';
+    }
 
     return GestureDetector(
       onTap: () {
@@ -134,18 +157,18 @@ class OrderCard extends StatelessWidget {
                       Container(
                         width: 8,
                         height: 8,
-                        decoration: const BoxDecoration(
-                          color: AppColors.charcoalThread,
+                        decoration: BoxDecoration(
+                          color: deliveryColor,
                           shape: BoxShape.circle,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        DateFormat('MMM d, yyyy').format(order.deliveryDate),
-                        style: const TextStyle(
+                        deliveryLabel,
+                        style: TextStyle(
                           fontFamily: 'Roboto Mono',
                           fontSize: 13,
-                          color: AppColors.charcoalThread,
+                          color: deliveryColor,
                         ),
                       ),
                     ],
