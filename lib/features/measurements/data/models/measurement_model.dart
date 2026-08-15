@@ -8,8 +8,8 @@ class MeasurementModel extends Measurement {
     required super.garmentType,
     required super.measurementData,
     required super.createdAt,
-    super.ownerId,
-    super.syncStatus,
+    super.ownerId = 'guest',
+    super.syncStatus = 0,
   });
 
   factory MeasurementModel.fromEntity(Measurement entity) {
@@ -17,7 +17,7 @@ class MeasurementModel extends Measurement {
       id: entity.id,
       customerId: entity.customerId,
       garmentType: entity.garmentType,
-      measurementData: entity.measurementData,
+      measurementData: Map<String, dynamic>.from(entity.measurementData),
       createdAt: entity.createdAt,
       ownerId: entity.ownerId,
       syncStatus: entity.syncStatus,

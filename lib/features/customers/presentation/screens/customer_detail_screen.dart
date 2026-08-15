@@ -148,8 +148,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> wit
                         children: [
                           GestureDetector(
                             onTap: () {
-                              // Navigate to measurement screen later
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Measurements UI coming soon!')));
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Measurements UI (3D Model) coming soon! Test on physical device.')));
                             },
                             child: Container(
                               padding: const EdgeInsets.all(16),

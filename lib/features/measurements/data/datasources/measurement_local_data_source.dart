@@ -1,11 +1,14 @@
+import 'package:sqflite/sqflite.dart';
 import 'package:tailor_khata/core/database/database_helper.dart';
 import 'package:tailor_khata/core/database/database_schema.dart';
 import 'package:tailor_khata/core/error/exceptions.dart';
 import 'package:tailor_khata/features/measurements/data/models/measurement_model.dart';
 
 abstract class MeasurementLocalDataSource {
+  Future<List<MeasurementModel>> getMeasurements();
   Future<List<MeasurementModel>> getMeasurementsByCustomer(String customerId);
   Future<MeasurementModel> getMeasurementById(String id);
+  Future<void> saveMeasurement(MeasurementModel measurement);
   Future<void> addMeasurement(MeasurementModel measurement);
   Future<void> updateMeasurement(MeasurementModel measurement);
   Future<void> deleteMeasurement(String id);
@@ -17,6 +20,17 @@ class MeasurementLocalDataSourceImpl implements MeasurementLocalDataSource {
   MeasurementLocalDataSourceImpl({required this.dbHelper});
 
   @override
+  Future<List<MeasurementModel>> getMeasurements() async {
+    try {
+      final db = await dbHelper.database;
+      final result = await db.query(DatabaseSchema.measurementsTable, orderBy: 'createdAt DESC');
+      return result.map((json) => MeasurementModel.fromJson(json)).toList();
+    } catch (e) {
+      throw LocalDatabaseException('Failed to fetch measurements: $e');
+    }
+  }
+
+  @override
   Future<List<MeasurementModel>> getMeasurementsByCustomer(String customerId) async {
     try {
       final db = await dbHelper.database;
@@ -24,11 +38,11 @@ class MeasurementLocalDataSourceImpl implements MeasurementLocalDataSource {
         DatabaseSchema.measurementsTable,
         where: 'customerId = ?',
         whereArgs: [customerId],
-        orderBy: 'createdAt DESC',
+        orderBy: 'createdAt DESC'
       );
       return result.map((json) => MeasurementModel.fromJson(json)).toList();
     } catch (e) {
-      throw LocalDatabaseException('Failed to fetch measurements for customer: \$e');
+      throw LocalDatabaseException('Failed to fetch measurements by customer: $e');
     }
   }
 
@@ -47,34 +61,29 @@ class MeasurementLocalDataSourceImpl implements MeasurementLocalDataSource {
         throw LocalDatabaseException('Measurement not found');
       }
     } catch (e) {
-      throw LocalDatabaseException('Failed to fetch measurement: \$e');
+      throw LocalDatabaseException('Failed to fetch measurement: $e');
     }
   }
 
   @override
-  Future<void> addMeasurement(MeasurementModel measurement) async {
+  Future<void> saveMeasurement(MeasurementModel measurement) async {
     try {
       final db = await dbHelper.database;
-      await db.insert(DatabaseSchema.measurementsTable, measurement.toJson());
-    } catch (e) {
-      throw LocalDatabaseException('Failed to add measurement: \$e');
-    }
-  }
-
-  @override
-  Future<void> updateMeasurement(MeasurementModel measurement) async {
-    try {
-      final db = await dbHelper.database;
-      await db.update(
+      await db.insert(
         DatabaseSchema.measurementsTable,
         measurement.toJson(),
-        where: 'id = ?',
-        whereArgs: [measurement.id],
+        conflictAlgorithm: ConflictAlgorithm.replace,
       );
     } catch (e) {
-      throw LocalDatabaseException('Failed to update measurement: \$e');
+      throw LocalDatabaseException('Failed to save measurement: $e');
     }
   }
+
+  @override
+  Future<void> addMeasurement(MeasurementModel measurement) => saveMeasurement(measurement);
+
+  @override
+  Future<void> updateMeasurement(MeasurementModel measurement) => saveMeasurement(measurement);
 
   @override
   Future<void> deleteMeasurement(String id) async {
@@ -86,7 +95,7 @@ class MeasurementLocalDataSourceImpl implements MeasurementLocalDataSource {
         whereArgs: [id],
       );
     } catch (e) {
-      throw LocalDatabaseException('Failed to delete measurement: \$e');
+      throw LocalDatabaseException('Failed to delete measurement: $e');
     }
   }
 }

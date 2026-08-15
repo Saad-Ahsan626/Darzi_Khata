@@ -48,7 +48,7 @@ final goRouter = GoRouter(
               routes: [
                 GoRoute(
                   path: 'measurements',
-                  builder: (context, state) => const MeasurementScreen(),
+                  builder: (context, state) => MeasurementScreen(customerId: state.pathParameters['id']!),
                 ),
               ],
             ),
