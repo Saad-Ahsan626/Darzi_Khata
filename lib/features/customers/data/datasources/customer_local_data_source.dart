@@ -20,10 +20,13 @@ class CustomerLocalDataSourceImpl implements CustomerLocalDataSource {
   Future<List<CustomerModel>> getCustomers() async {
     try {
       final db = await dbHelper.database;
-      final result = await db.query(DatabaseSchema.customersTable, orderBy: 'createdAt DESC');
+      final result = await db.query(
+        DatabaseSchema.customersTable,
+        orderBy: 'createdAt DESC',
+      );
       return result.map((json) => CustomerModel.fromJson(json)).toList();
     } catch (e) {
-      throw LocalDatabaseException('Failed to fetch customers: \$e');
+      throw LocalDatabaseException('Failed to fetch customers: $e');
     }
   }
 
@@ -42,7 +45,7 @@ class CustomerLocalDataSourceImpl implements CustomerLocalDataSource {
         throw LocalDatabaseException('Customer not found');
       }
     } catch (e) {
-      throw LocalDatabaseException('Failed to fetch customer: \$e');
+      throw LocalDatabaseException('Failed to fetch customer: $e');
     }
   }
 
@@ -52,7 +55,7 @@ class CustomerLocalDataSourceImpl implements CustomerLocalDataSource {
       final db = await dbHelper.database;
       await db.insert(DatabaseSchema.customersTable, customer.toJson());
     } catch (e) {
-      throw LocalDatabaseException('Failed to add customer: \$e');
+      throw LocalDatabaseException('Failed to add customer: $e');
     }
   }
 
@@ -67,7 +70,7 @@ class CustomerLocalDataSourceImpl implements CustomerLocalDataSource {
         whereArgs: [customer.id],
       );
     } catch (e) {
-      throw LocalDatabaseException('Failed to update customer: \$e');
+      throw LocalDatabaseException('Failed to update customer: $e');
     }
   }
 
@@ -81,7 +84,7 @@ class CustomerLocalDataSourceImpl implements CustomerLocalDataSource {
         whereArgs: [id],
       );
     } catch (e) {
-      throw LocalDatabaseException('Failed to delete customer: \$e');
+      throw LocalDatabaseException('Failed to delete customer: $e');
     }
   }
 }

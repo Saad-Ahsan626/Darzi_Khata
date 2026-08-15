@@ -20,8 +20,9 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
+      onUpgrade: _onUpgrade,
       onConfigure: _onConfigure,
     );
   }
@@ -34,6 +35,14 @@ class DatabaseHelper {
     await db.execute(DatabaseSchema.createCustomersTable);
     await db.execute(DatabaseSchema.createMeasurementsTable);
     await db.execute(DatabaseSchema.createOrdersTable);
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute("ALTER TABLE ${DatabaseSchema.customersTable} ADD COLUMN urduName TEXT;");
+      await db.execute("ALTER TABLE ${DatabaseSchema.customersTable} ADD COLUMN address TEXT;");
+      await db.execute("ALTER TABLE ${DatabaseSchema.customersTable} ADD COLUMN imagePath TEXT;");
+    }
   }
 
   Future<void> close() async {

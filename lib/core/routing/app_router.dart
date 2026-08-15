@@ -44,7 +44,7 @@ final goRouter = GoRouter(
             ),
             GoRoute(
               path: ':id',
-              builder: (context, state) => const CustomerDetailScreen(),
+              builder: (context, state) => CustomerDetailScreen(customerId: state.pathParameters['id']!),
               routes: [
                 GoRoute(
                   path: 'measurements',

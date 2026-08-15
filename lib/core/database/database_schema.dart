@@ -7,7 +7,10 @@ class DatabaseSchema {
     CREATE TABLE $customersTable (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
+      urduName TEXT,
       phone TEXT,
+      address TEXT,
+      imagePath TEXT,
       createdAt INTEGER NOT NULL,
       ownerId TEXT DEFAULT 'guest',
       syncStatus INTEGER DEFAULT 0

@@ -22,11 +22,18 @@ class AppShell extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: _calculateSelectedIndex(context) == 2
+      floatingActionButton:
+          _calculateSelectedIndex(context) == 1 ||
+              _calculateSelectedIndex(context) == 2
           ? FloatingActionButton(
               backgroundColor: const Color(0xFFB8863B), // brassTape
               onPressed: () {
-                context.go('/orders/new');
+                final idx = _calculateSelectedIndex(context);
+                if (idx == 1) {
+                  context.push('/customers/new');
+                } else {
+                  context.push('/orders/new');
+                }
               },
               child: const Icon(Icons.add, size: 34, color: Colors.white),
             )
