@@ -33,23 +33,31 @@ class CustomerCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        customer.name,
-                        style: const TextStyle(
-                          fontFamily: 'Noto Sans',
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.charcoalThread,
+                      Flexible(
+                        child: Text(
+                          customer.name,
+                          style: const TextStyle(
+                            fontFamily: 'Noto Sans',
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.charcoalThread,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       if (customer.urduName != null && customer.urduName!.isNotEmpty) ...[
                         const SizedBox(width: 8),
-                        Text(
-                          customer.urduName!,
-                          style: const TextStyle(
-                            fontFamily: 'Noto Nastaliq Urdu',
-                            fontSize: 14,
-                            color: AppColors.inkSoft,
+                        Flexible(
+                          child: Text(
+                            customer.urduName!,
+                            style: const TextStyle(
+                              fontFamily: 'Noto Nastaliq Urdu',
+                              fontSize: 14,
+                              color: AppColors.inkSoft,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],

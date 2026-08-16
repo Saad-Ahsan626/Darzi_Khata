@@ -21,7 +21,7 @@ class Customer extends Equatable {
     required this.createdAt,
     this.ownerId = 'guest',
     this.syncStatus = 0,
-  });
+  }) : assert(name.length > 0, 'Name cannot be empty');
 
   @override
   List<Object?> get props => [

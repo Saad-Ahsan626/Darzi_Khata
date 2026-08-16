@@ -20,6 +20,7 @@ class AddEditCustomerScreen extends ConsumerStatefulWidget {
 }
 
 class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _urduNameController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -167,9 +168,11 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // Photo Picker
             Center(
               child: GestureDetector(
@@ -216,16 +219,21 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
             const SizedBox(height: 32),
 
             _buildLabel('ENGLISH NAME'),
-            TextField(
+            TextFormField(
               controller: _nameController,
               style: const TextStyle(fontFamily: 'Noto Sans', fontSize: 16),
               decoration: _inputDecoration('e.g. Ali Khan'),
               textCapitalization: TextCapitalization.words,
+              validator: (val) {
+                if (val == null || val.trim().isEmpty) return 'Name is required';
+                if (val.length > 50) return 'Name is too long';
+                return null;
+              },
             ),
             const SizedBox(height: 16),
 
             _buildLabel('URDU NAME / اردو نام'),
-            TextField(
+            TextFormField(
               controller: _urduNameController,
               textAlign: TextAlign.right,
               textDirection: TextDirection.rtl,
@@ -238,16 +246,24 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
             const SizedBox(height: 16),
 
             _buildLabel('PHONE NUMBER'),
-            TextField(
+            TextFormField(
               controller: _phoneController,
               keyboardType: TextInputType.phone,
               style: const TextStyle(fontFamily: 'Roboto Mono', fontSize: 16),
               decoration: _inputDecoration('e.g. 0300 1234567'),
+              validator: (val) {
+                if (val == null || val.trim().isEmpty) return null;
+                final clean = val.replaceAll(RegExp(r'[-\s]'), '');
+                if (!RegExp(r'^(?:\+92|0)[0-9]{9,10}$').hasMatch(clean)) {
+                  return 'Invalid Pakistani phone number';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
 
             _buildLabel('ADDRESS (OPTIONAL)'),
-            TextField(
+            TextFormField(
               controller: _addressController,
               style: const TextStyle(fontFamily: 'Noto Sans', fontSize: 16),
               decoration: _inputDecoration('e.g. Shop 12, Main Market'),
@@ -267,13 +283,9 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
                   elevation: 0,
                 ),
                 onPressed: () async {
+                  if (!_formKey.currentState!.validate()) return;
+                  
                   final name = _nameController.text.trim();
-                  if (name.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please enter a name')),
-                    );
-                    return;
-                  }
 
                   final imagePath = await _saveImageLocally();
 
@@ -326,6 +338,7 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

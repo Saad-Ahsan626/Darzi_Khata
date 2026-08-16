@@ -28,7 +28,8 @@ class CustomersNotifier extends AsyncNotifier<List<Customer>> {
     final addCustomerUsecase = ref.read(addCustomerUsecaseProvider);
     final result = await addCustomerUsecase(customer);
     result.fold(
-      (failure) => state = AsyncValue.error(failure.message, StackTrace.current),
+      (failure) =>
+          state = AsyncValue.error(failure.message, StackTrace.current),
       (_) => loadCustomers(),
     );
   }
@@ -37,7 +38,8 @@ class CustomersNotifier extends AsyncNotifier<List<Customer>> {
     final updateCustomerUsecase = ref.read(updateCustomerUsecaseProvider);
     final result = await updateCustomerUsecase(customer);
     result.fold(
-      (failure) => state = AsyncValue.error(failure.message, StackTrace.current),
+      (failure) =>
+          state = AsyncValue.error(failure.message, StackTrace.current),
       (_) => loadCustomers(),
     );
   }
@@ -46,12 +48,16 @@ class CustomersNotifier extends AsyncNotifier<List<Customer>> {
     final deleteCustomerUsecase = ref.read(deleteCustomerUsecaseProvider);
     final result = await deleteCustomerUsecase(id);
     result.fold(
-      (failure) => state = AsyncValue.error(failure.message, StackTrace.current),
-      (_) => loadCustomers(),
+      (failure) =>
+          state = AsyncValue.error(failure.message, StackTrace.current),
+      (_) {
+        loadCustomers();
+      },
     );
   }
 }
 
-final customersNotifierProvider = AsyncNotifierProvider<CustomersNotifier, List<Customer>>(() {
-  return CustomersNotifier();
-});
+final customersNotifierProvider =
+    AsyncNotifierProvider<CustomersNotifier, List<Customer>>(() {
+      return CustomersNotifier();
+    });

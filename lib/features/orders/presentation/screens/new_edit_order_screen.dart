@@ -18,6 +18,7 @@ class NewEditOrderScreen extends ConsumerStatefulWidget {
 }
 
 class _NewEditOrderScreenState extends ConsumerState<NewEditOrderScreen> {
+  final _formKey = GlobalKey<FormState>();
   String? _selectedCustomerId;
   String _selectedGarment = 'Shalwar Kameez';
   final TextEditingController _fabricController = TextEditingController();
@@ -48,16 +49,7 @@ class _NewEditOrderScreenState extends ConsumerState<NewEditOrderScreen> {
   }
 
   void _saveOrder({required bool sendWhatsApp}) {
-    if (_priceController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Add a price before saving'),
-          backgroundColor: AppColors.charcoalThread,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     if (_selectedCustomerId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -142,9 +134,11 @@ class _NewEditOrderScreenState extends ConsumerState<NewEditOrderScreen> {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             // Customer Picker
             _buildLabel('CUSTOMER'),
             customersAsync.when(
@@ -238,7 +232,7 @@ class _NewEditOrderScreenState extends ConsumerState<NewEditOrderScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildLabel('PRICE (RS)'),
-                      TextField(
+                      TextFormField(
                         controller: _priceController,
                         keyboardType: TextInputType.number,
                         style: const TextStyle(
@@ -246,6 +240,13 @@ class _NewEditOrderScreenState extends ConsumerState<NewEditOrderScreen> {
                           fontSize: 16,
                         ),
                         decoration: _inputDecoration(),
+                        validator: (val) {
+                          if (val == null || val.trim().isEmpty) return 'Required';
+                          final p = double.tryParse(val);
+                          if (p == null) return 'Invalid';
+                          if (p < 0) return 'Cannot be negative';
+                          return null;
+                        },
                       ),
                     ],
                   ),
@@ -256,7 +257,7 @@ class _NewEditOrderScreenState extends ConsumerState<NewEditOrderScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildLabel('ADVANCE (RS)'),
-                      TextField(
+                      TextFormField(
                         controller: _advanceController,
                         keyboardType: TextInputType.number,
                         style: const TextStyle(
@@ -264,6 +265,15 @@ class _NewEditOrderScreenState extends ConsumerState<NewEditOrderScreen> {
                           fontSize: 16,
                         ),
                         decoration: _inputDecoration(),
+                        validator: (val) {
+                          if (val == null || val.trim().isEmpty) return null;
+                          final a = double.tryParse(val);
+                          if (a == null) return 'Invalid';
+                          if (a < 0) return 'Cannot be negative';
+                          final p = double.tryParse(_priceController.text) ?? 0;
+                          if (a > p) return 'Exceeds price';
+                          return null;
+                        },
                       ),
                     ],
                   ),
@@ -316,11 +326,13 @@ class _NewEditOrderScreenState extends ConsumerState<NewEditOrderScreen> {
             _buildLabel('DELIVERY DATE'),
             GestureDetector(
               onTap: () async {
+                final now = DateTime.now();
+                final today = DateTime(now.year, now.month, now.day);
                 final date = await showDatePicker(
                   context: context,
-                  initialDate: _deliveryDate,
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime.now().add(const Duration(days: 365)),
+                  initialDate: _deliveryDate.isBefore(today) ? today : _deliveryDate,
+                  firstDate: today,
+                  lastDate: today.add(const Duration(days: 365)),
                   builder: (context, child) {
                     return Theme(
                       data: Theme.of(context).copyWith(
@@ -470,6 +482,7 @@ class _NewEditOrderScreenState extends ConsumerState<NewEditOrderScreen> {
             ),
             const SizedBox(height: 32),
           ],
+        ),
         ),
       ),
     );

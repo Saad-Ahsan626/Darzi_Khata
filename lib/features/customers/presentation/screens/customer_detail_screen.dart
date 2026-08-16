@@ -78,15 +78,23 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> wit
                         children: [
                           Row(
                             children: [
-                              Text(
-                                customer.name,
-                                style: const TextStyle(fontFamily: 'Zilla Slab', fontSize: 20, color: AppColors.tailorChalk, fontWeight: FontWeight.w600),
+                              Flexible(
+                                child: Text(
+                                  customer.name,
+                                  style: const TextStyle(fontFamily: 'Zilla Slab', fontSize: 20, color: AppColors.tailorChalk, fontWeight: FontWeight.w600),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                               if (customer.urduName != null && customer.urduName!.isNotEmpty) ...[
                                 const SizedBox(width: 8),
-                                Text(
-                                  customer.urduName!,
-                                  style: const TextStyle(fontFamily: 'Noto Nastaliq Urdu', fontSize: 18, color: AppColors.brassTape),
+                                Flexible(
+                                  child: Text(
+                                    customer.urduName!,
+                                    style: const TextStyle(fontFamily: 'Noto Nastaliq Urdu', fontSize: 18, color: AppColors.brassTape),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                               ],
                             ],

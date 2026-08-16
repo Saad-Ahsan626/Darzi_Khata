@@ -27,7 +27,9 @@ class Order extends Equatable {
     required this.createdAt,
     this.ownerId = 'guest',
     this.syncStatus = 0,
-  });
+  })  : assert(totalAmount >= 0, 'Total amount cannot be negative'),
+        assert(advancePaid >= 0, 'Advance paid cannot be negative'),
+        assert(advancePaid <= totalAmount, 'Advance paid cannot exceed total amount');
 
   @override
   List<Object?> get props => [
