@@ -48,7 +48,7 @@ dependencies:
   uuid: ^4.6.0
   image_picker: ^1.2.3
   path_provider: ^2.1.6
-  flutter_3d_controller: ^2.1.4
+  flutter_cube: ^0.1.1
 
 dev_dependencies:
   flutter_test:
