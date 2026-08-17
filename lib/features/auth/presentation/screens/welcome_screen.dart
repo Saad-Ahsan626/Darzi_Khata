@@ -24,7 +24,7 @@ class WelcomeScreen extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withAlpha(13), // ~0.05 * 255
                     blurRadius: 10,
                     spreadRadius: 2,
                   ),
@@ -85,13 +85,13 @@ class WelcomeScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
+                      color: Colors.black.withAlpha(8), // ~0.03 * 255
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
                   ],
                   border: Border.all(
-                    color: AppColors.fabricGrey.withOpacity(0.5),
+                    color: AppColors.fabricGrey.withAlpha(128),
                   ),
                 ),
                 child: Column(

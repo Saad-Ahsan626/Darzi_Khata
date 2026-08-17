@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tailor_khata/core/theme/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -9,7 +10,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
@@ -30,10 +32,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     // Start the animation
     _controller.forward();
 
-    // Navigate to welcome screen after 3 seconds
-    Future.delayed(const Duration(seconds: 3), () {
+    // Navigate after 3 seconds
+    Future.delayed(const Duration(seconds: 3), () async {
+      final prefs = await SharedPreferences.getInstance();
+      final isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
       if (mounted) {
-        context.go('/welcome');
+        if (isFirstLaunch) {
+          context.go('/onboarding');
+        } else {
+          context.go('/welcome');
+        }
       }
     });
   }
@@ -98,7 +106,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 2,
-                  color: AppColors.tailorChalk.withOpacity(0.5),
+                  color: AppColors.tailorChalk.withAlpha(128),
                 ),
               ),
             ),

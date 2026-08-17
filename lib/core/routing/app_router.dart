@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:tailor_khata/core/shell/app_shell.dart';
 import 'package:tailor_khata/features/auth/presentation/screens/splash_screen.dart';
+import 'package:tailor_khata/features/auth/presentation/screens/onboarding_screen.dart';
 import 'package:tailor_khata/features/auth/presentation/screens/welcome_screen.dart';
 import 'package:tailor_khata/features/auth/presentation/screens/login_screen.dart';
 import 'package:tailor_khata/features/dashboard/presentation/screens/dashboard_screen.dart';
@@ -18,6 +19,10 @@ final goRouter = GoRouter(
   routes: [
     // Auth Routes
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
+    GoRoute(
+      path: '/onboarding',
+      builder: (context, state) => const OnboardingScreen(),
+    ),
     GoRoute(
       path: '/welcome',
       builder: (context, state) => const WelcomeScreen(),
