@@ -11,6 +11,7 @@ class Order extends Equatable {
   final double advancePaid;
   final String? notes;
   final DateTime createdAt;
+  final DateTime? deliveredAt;
   final String ownerId;
   final int syncStatus;
 
@@ -25,6 +26,7 @@ class Order extends Equatable {
     required this.advancePaid,
     this.notes,
     required this.createdAt,
+    this.deliveredAt,
     this.ownerId = 'guest',
     this.syncStatus = 0,
   })  : assert(totalAmount >= 0, 'Total amount cannot be negative'),
@@ -43,6 +45,7 @@ class Order extends Equatable {
         advancePaid,
         notes,
         createdAt,
+        deliveredAt,
         ownerId,
         syncStatus,
       ];

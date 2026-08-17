@@ -4,6 +4,7 @@ import 'package:tailor_khata/core/theme/app_colors.dart';
 import 'package:tailor_khata/features/orders/presentation/providers/orders_notifier.dart';
 import 'package:tailor_khata/features/customers/presentation/providers/customers_notifier.dart';
 import 'package:tailor_khata/features/dashboard/presentation/widgets/dashboard_delivery_card.dart';
+import 'package:go_router/go_router.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -72,13 +73,21 @@ class DashboardScreen extends ConsumerWidget {
           final now = DateTime.now();
           final today = DateTime(now.year, now.month, now.day);
           
-          // "This Month" revenue based on createdAt
+          // "This Month" revenue based on cash received (advance + balance at delivery)
           double monthRevenue = 0;
-          int monthCount = 0;
           for (var order in orders) {
-            if (order.createdAt.year == now.year && order.createdAt.month == now.month) {
-              monthRevenue += order.totalAmount;
-              monthCount++;
+            final advance = order.advancePaid;
+            final remaining = order.totalAmount - advance;
+
+            if (advance > 0 && order.createdAt.year == now.year && order.createdAt.month == now.month) {
+              monthRevenue += advance;
+            }
+
+            if (order.status == 'Delivered' && order.deliveredAt != null && remaining > 0) {
+              final dDate = order.deliveredAt!;
+              if (dDate.year == now.year && dDate.month == now.month) {
+                monthRevenue += remaining;
+              }
             }
           }
 
@@ -86,12 +95,10 @@ class DashboardScreen extends ConsumerWidget {
           double pendingTotal = 0;
           Set<String> pendingCustomers = {};
           for (var order in orders) {
-            if (order.status != 'Delivered') {
-              final balance = order.totalAmount - order.advancePaid;
-              if (balance > 0) {
-                pendingTotal += balance;
-                pendingCustomers.add(order.customerId);
-              }
+            final balance = order.totalAmount - order.advancePaid;
+            if (balance > 0) {
+              pendingTotal += balance;
+              pendingCustomers.add(order.customerId);
             }
           }
 
@@ -110,47 +117,59 @@ class DashboardScreen extends ConsumerWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppColors.stitchNavy,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'THIS MONTH',
-                              style: TextStyle(
-                                fontFamily: 'Noto Sans',
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.ghost,
-                                letterSpacing: 0.5,
+                      child: GestureDetector(
+                        onTap: () {
+                          context.push('/home/revenue');
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.stitchNavy,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'THIS MONTH',
+                                style: TextStyle(
+                                  fontFamily: 'Noto Sans',
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.ghost,
+                                  letterSpacing: 0.5,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Rs $monthRevenue',
-                              style: const TextStyle(
-                                fontFamily: 'Roboto Mono',
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.tailorChalk,
+                              const SizedBox(height: 8),
+                              Text(
+                                'Rs ${monthRevenue.toStringAsFixed(0)}',
+                                style: const TextStyle(
+                                  fontFamily: 'Roboto Mono',
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.tailorChalk,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '$monthCount orders',
-                              style: const TextStyle(
-                                fontFamily: 'Noto Sans',
-                                fontSize: 13,
-                                color: AppColors.ghost,
+                              const SizedBox(height: 4),
+                              Row(
+                                children: const [
+                                  Text(
+                                    'View all',
+                                    style: TextStyle(
+                                      fontFamily: 'Noto Sans',
+                                      fontSize: 13,
+                                      color: AppColors.brassTape,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  SizedBox(width: 4),
+                                  Icon(Icons.arrow_forward_ios, color: AppColors.brassTape, size: 10),
+                                ],
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),

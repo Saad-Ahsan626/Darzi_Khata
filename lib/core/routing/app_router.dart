@@ -13,9 +13,11 @@ import 'package:tailor_khata/features/orders/presentation/screens/order_list_scr
 import 'package:tailor_khata/features/orders/presentation/screens/order_detail_screen.dart';
 import 'package:tailor_khata/features/orders/presentation/screens/new_edit_order_screen.dart';
 import 'package:tailor_khata/features/settings/presentation/screens/settings_screen.dart';
+import 'package:tailor_khata/features/dashboard/presentation/screens/revenue_screen.dart';
 
 final goRouter = GoRouter(
   initialLocation: '/splash',
+  restorationScopeId: 'app_router',
   routes: [
     // Auth Routes
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
@@ -38,6 +40,12 @@ final goRouter = GoRouter(
         GoRoute(
           path: '/home',
           builder: (context, state) => const DashboardScreen(),
+          routes: [
+            GoRoute(
+              path: 'revenue',
+              builder: (context, state) => const RevenueScreen(),
+            ),
+          ],
         ),
         GoRoute(
           path: '/customers',
@@ -49,11 +57,22 @@ final goRouter = GoRouter(
             ),
             GoRoute(
               path: ':id',
-              builder: (context, state) => CustomerDetailScreen(customerId: state.pathParameters['id']!),
+              builder: (context, state) =>
+                  CustomerDetailScreen(customerId: state.pathParameters['id']!),
               routes: [
                 GoRoute(
+                  path: 'edit',
+                  builder: (context, state) {
+                    return AddEditCustomerScreen(
+                      existingCustomer: state.extra as dynamic,
+                    );
+                  },
+                ),
+                GoRoute(
                   path: 'measurements',
-                  builder: (context, state) => MeasurementScreen(customerId: state.pathParameters['id']!),
+                  builder: (context, state) => MeasurementScreen(
+                    customerId: state.pathParameters['id']!,
+                  ),
                 ),
               ],
             ),

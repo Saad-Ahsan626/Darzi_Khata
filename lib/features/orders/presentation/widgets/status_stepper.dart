@@ -30,7 +30,7 @@ class StatusStepper extends StatelessWidget {
         final isCurrent = index == currentIndex;
 
         return GestureDetector(
-          onTap: () => onStatusChanged(status['en']!),
+          onTap: currentStatus == 'Delivered' ? null : () => onStatusChanged(status['en']!),
           child: Container(
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

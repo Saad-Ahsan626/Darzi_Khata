@@ -16,6 +16,7 @@ class TailorKhataApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
+      restorationScopeId: 'tailor_khata_app',
       title: 'Tailor Khata',
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,

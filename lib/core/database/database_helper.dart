@@ -20,7 +20,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
       onConfigure: _onConfigure,
@@ -42,6 +42,9 @@ class DatabaseHelper {
       await db.execute("ALTER TABLE ${DatabaseSchema.customersTable} ADD COLUMN urduName TEXT;");
       await db.execute("ALTER TABLE ${DatabaseSchema.customersTable} ADD COLUMN address TEXT;");
       await db.execute("ALTER TABLE ${DatabaseSchema.customersTable} ADD COLUMN imagePath TEXT;");
+    }
+    if (oldVersion < 3) {
+      await db.execute("ALTER TABLE ${DatabaseSchema.ordersTable} ADD COLUMN deliveredAt INTEGER;");
     }
   }
 

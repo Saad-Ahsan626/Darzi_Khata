@@ -12,6 +12,7 @@ class OrderModel extends Order {
     required super.advancePaid,
     super.notes,
     required super.createdAt,
+    super.deliveredAt,
     super.ownerId,
     super.syncStatus,
   });
@@ -28,6 +29,7 @@ class OrderModel extends Order {
       advancePaid: entity.advancePaid,
       notes: entity.notes,
       createdAt: entity.createdAt,
+      deliveredAt: entity.deliveredAt,
       ownerId: entity.ownerId,
       syncStatus: entity.syncStatus,
     );
@@ -45,6 +47,7 @@ class OrderModel extends Order {
       advancePaid: (json['advancePaid'] as num).toDouble(),
       notes: json['notes'] as String?,
       createdAt: DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int),
+      deliveredAt: json['deliveredAt'] != null ? DateTime.fromMillisecondsSinceEpoch(json['deliveredAt'] as int) : null,
       ownerId: json['ownerId'] as String? ?? 'guest',
       syncStatus: json['syncStatus'] as int? ?? 0,
     );
@@ -62,6 +65,7 @@ class OrderModel extends Order {
       'advancePaid': advancePaid,
       'notes': notes,
       'createdAt': createdAt.millisecondsSinceEpoch,
+      'deliveredAt': deliveredAt?.millisecondsSinceEpoch,
       'ownerId': ownerId,
       'syncStatus': syncStatus,
     };

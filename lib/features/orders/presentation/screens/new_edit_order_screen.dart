@@ -136,6 +136,7 @@ class _NewEditOrderScreenState extends ConsumerState<NewEditOrderScreen> {
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -381,51 +382,7 @@ class _NewEditOrderScreenState extends ConsumerState<NewEditOrderScreen> {
             ),
             const SizedBox(height: 16),
 
-            _buildLabel('STATUS'),
-            Wrap(
-              spacing: 8.0,
-              runSpacing: 8.0,
-              children:
-                  [
-                    'Received',
-                    'Cutting',
-                    'Stitching',
-                    'Ready',
-                    'Delivered',
-                  ].map((status) {
-                    final isSelected = status == _selectedStatus;
-                    return GestureDetector(
-                      onTap: () => setState(() => _selectedStatus = status),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppColors.stitchNavy
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isSelected
-                                ? AppColors.stitchNavy
-                                : AppColors.fabricGrey,
-                          ),
-                        ),
-                        child: Text(
-                          status,
-                          style: TextStyle(
-                            fontFamily: 'Noto Sans',
-                            fontSize: 14,
-                            color: isSelected
-                                ? Colors.white
-                                : AppColors.charcoalThread,
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-            ),
+            // Status is auto-set to Received for new orders.
             const SizedBox(height: 32),
 
             // Actions

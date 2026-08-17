@@ -11,6 +11,64 @@ import 'package:tailor_khata/features/orders/presentation/widgets/status_stepper
 class OrderDetailScreen extends ConsumerWidget {
   const OrderDetailScreen({super.key});
 
+  Future<int?> _showDeliveryConfirmation(BuildContext context, double balance) {
+    if (balance <= 0) {
+      // If already fully paid, just ask for normal confirmation
+      return showDialog<int>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: AppColors.charcoalThread,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Confirm Delivery', style: TextStyle(color: AppColors.tailorChalk, fontFamily: 'Zilla Slab')),
+          content: const Text(
+            'Are you sure you want to mark this order as Delivered?\n\nOnce marked as Delivered, you cannot change its status again.',
+            style: TextStyle(color: AppColors.ghost, fontFamily: 'Noto Sans'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, 0), // 0 = Cancel
+              child: const Text('Cancel', style: TextStyle(color: AppColors.fabricGrey)),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, 2), // 2 = Mark delivered (no payment needed)
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.brassTape),
+              child: const Text('Confirm', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // If there is a pending balance
+    return showDialog<int>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.charcoalThread,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Payment Collection', style: TextStyle(color: AppColors.tailorChalk, fontFamily: 'Zilla Slab')),
+        content: Text(
+          'Remaining Balance: Rs ${balance.toStringAsFixed(0)}\n\nHas the customer paid the remaining balance?',
+          style: const TextStyle(color: AppColors.ghost, fontFamily: 'Noto Sans'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, 0), // 0 = Cancel
+            child: const Text('Cancel', style: TextStyle(color: AppColors.fabricGrey)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, 1), // 1 = Delivered but NOT Paid
+            child: const Text('Not Paid', style: TextStyle(color: AppColors.seamRed)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, 2), // 2 = Delivered AND Paid
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.brassTape),
+            child: const Text('Paid & Deliver', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final orderId = GoRouterState.of(context).pathParameters['id'];
@@ -192,7 +250,14 @@ class OrderDetailScreen extends ConsumerWidget {
 
                       StatusStepper(
                         currentStatus: order.status,
-                        onStatusChanged: (newStatus) {
+                        onStatusChanged: (newStatus) async {
+                          int paymentResult = 2; // Default assume paid or no balance
+                          if (newStatus == 'Delivered') {
+                            final balance = order.totalAmount - order.advancePaid;
+                            final confirmed = await _showDeliveryConfirmation(context, balance);
+                            if (confirmed == null || confirmed == 0) return;
+                            paymentResult = confirmed;
+                          }
                           final updatedOrder = order_entity.Order(
                             id: order.id,
                             customerId: order.customerId,
@@ -201,9 +266,10 @@ class OrderDetailScreen extends ConsumerWidget {
                             status: newStatus,
                             deliveryDate: order.deliveryDate,
                             totalAmount: order.totalAmount,
-                            advancePaid: order.advancePaid,
+                            advancePaid: paymentResult == 2 ? order.totalAmount : order.advancePaid,
                             notes: order.notes,
                             createdAt: order.createdAt,
+                            deliveredAt: newStatus == 'Delivered' ? DateTime.now() : order.deliveredAt,
                             ownerId: order.ownerId,
                             syncStatus: order.syncStatus,
                           );
@@ -214,45 +280,52 @@ class OrderDetailScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 32),
 
-                      ElevatedButton(
-                        onPressed: () {
-                          final updatedOrder = order_entity.Order(
-                            id: order.id,
-                            customerId: order.customerId,
-                            measurementId: order.measurementId,
-                            garmentType: order.garmentType,
-                            status: 'Delivered',
-                            deliveryDate: order.deliveryDate,
-                            totalAmount: order.totalAmount,
-                            advancePaid: order.advancePaid,
-                            notes: order.notes,
-                            createdAt: order.createdAt,
-                            ownerId: order.ownerId,
-                            syncStatus: order.syncStatus,
-                          );
-                          ref
-                              .read(ordersNotifierProvider.notifier)
-                              .updateOrder(updatedOrder);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.stitchNavy,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      if (order.status != 'Delivered')
+                        ElevatedButton(
+                          onPressed: () async {
+                            final balance = order.totalAmount - order.advancePaid;
+                            final confirmed = await _showDeliveryConfirmation(context, balance);
+                            if (confirmed == null || confirmed == 0) return;
+
+                            final updatedOrder = order_entity.Order(
+                              id: order.id,
+                              customerId: order.customerId,
+                              measurementId: order.measurementId,
+                              garmentType: order.garmentType,
+                              status: 'Delivered',
+                              deliveryDate: order.deliveryDate,
+                              totalAmount: order.totalAmount,
+                              advancePaid: confirmed == 2 ? order.totalAmount : order.advancePaid,
+                              notes: order.notes,
+                              createdAt: order.createdAt,
+                              deliveredAt: DateTime.now(),
+                              ownerId: order.ownerId,
+                              syncStatus: order.syncStatus,
+                            );
+                            ref
+                                .read(ordersNotifierProvider.notifier)
+                                .updateOrder(updatedOrder);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.stitchNavy,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
                           ),
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          'Mark as Delivered',
-                          style: TextStyle(
-                            fontFamily: 'Noto Sans',
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                          child: const Text(
+                            'Mark as Delivered',
+                            style: TextStyle(
+                              fontFamily: 'Noto Sans',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
+                      if (order.status != 'Delivered')
+                        const SizedBox(height: 12),
                       ElevatedButton(
                         onPressed: () {
                           ScaffoldMessenger.of(context).showSnackBar(

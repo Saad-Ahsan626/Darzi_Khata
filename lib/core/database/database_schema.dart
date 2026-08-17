@@ -44,6 +44,7 @@ class DatabaseSchema {
       advancePaid REAL NOT NULL,
       notes TEXT,
       createdAt INTEGER NOT NULL,
+      deliveredAt INTEGER,
       ownerId TEXT DEFAULT 'guest',
       syncStatus INTEGER DEFAULT 0,
       FOREIGN KEY(customerId) REFERENCES $customersTable(id) ON DELETE CASCADE,
