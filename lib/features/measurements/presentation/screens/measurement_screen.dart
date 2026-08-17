@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_cube/flutter_cube.dart';
 import 'package:go_router/go_router.dart';
@@ -285,88 +286,85 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                 final height = constraints.maxHeight;
                 final width = constraints.maxWidth;
                 return Stack(
-              children: [
-                // 3D Viewer
-                Cube(
-                  interactive: false,
-                  onSceneCreated: _onSceneCreated,
-                ),
+                  children: [
+                    // 3D Viewer
+                    Cube(interactive: false, onSceneCreated: _onSceneCreated),
 
-                // Floating Chips Overlay (Front View Layout)
-                  Positioned(
-                    top: height * 0.15,
-                    left: width * 0.2,
-                    child: MeasurementChip(
-                      labelEn: 'Neck',
-                      labelUr: 'گلا',
-                      value: data['neck'],
-                      onTap: () => _openBottomEditor(
-                        'neck',
-                        'Neck',
-                        'گلا',
-                        data['neck'],
+                    // Floating Chips Overlay (Front View Layout)
+                    Positioned(
+                      top: height * 0.15,
+                      left: width * 0.2,
+                      child: MeasurementChip(
+                        labelEn: 'Neck',
+                        labelUr: 'گلا',
+                        value: data['neck'],
+                        onTap: () => _openBottomEditor(
+                          'neck',
+                          'Neck',
+                          'گلا',
+                          data['neck'],
+                        ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    top: height * 0.32,
-                    right: width * 0.12,
-                    child: MeasurementChip(
-                      labelEn: 'Chest',
-                      labelUr: 'چھاتی',
-                      value: data['chest'],
-                      onTap: () => _openBottomEditor(
-                        'chest',
-                        'Chest',
-                        'چھاتی',
-                        data['chest'],
+                    Positioned(
+                      top: height * 0.32,
+                      right: width * 0.12,
+                      child: MeasurementChip(
+                        labelEn: 'Chest',
+                        labelUr: 'چھاتی',
+                        value: data['chest'],
+                        onTap: () => _openBottomEditor(
+                          'chest',
+                          'Chest',
+                          'چھاتی',
+                          data['chest'],
+                        ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    top: height * 0.40,
-                    left: width * 0.12,
-                    child: MeasurementChip(
-                      labelEn: 'Waist',
-                      labelUr: 'کمر',
-                      value: data['waist'],
-                      onTap: () => _openBottomEditor(
-                        'waist',
-                        'Waist',
-                        'کمر',
-                        data['waist'],
+                    Positioned(
+                      top: height * 0.40,
+                      left: width * 0.12,
+                      child: MeasurementChip(
+                        labelEn: 'Waist',
+                        labelUr: 'کمر',
+                        value: data['waist'],
+                        onTap: () => _openBottomEditor(
+                          'waist',
+                          'Waist',
+                          'کمر',
+                          data['waist'],
+                        ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    top: height * 0.55,
-                    right: width * 0.12,
-                    child: MeasurementChip(
-                      labelEn: 'Hip',
-                      labelUr: 'ہپ',
-                      value: data['hip'],
-                      onTap: () =>
-                          _openBottomEditor('hip', 'Hip', 'ہپ', data['hip']),
-                    ),
-                  ),
-                  Positioned(
-                    top: height * 0.70,
-                    left: width * 0.1,
-                    child: MeasurementChip(
-                      labelEn: 'Length',
-                      labelUr: 'لمبائی',
-                      value: data['length'],
-                      onTap: () => _openBottomEditor(
-                        'length',
-                        'Length',
-                        'لمبائی',
-                        data['length'],
+                    Positioned(
+                      top: height * 0.55,
+                      right: width * 0.12,
+                      child: MeasurementChip(
+                        labelEn: 'Hip',
+                        labelUr: 'ہپ',
+                        value: data['hip'],
+                        onTap: () =>
+                            _openBottomEditor('hip', 'Hip', 'ہپ', data['hip']),
                       ),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      top: height * 0.70,
+                      left: width * 0.1,
+                      child: MeasurementChip(
+                        labelEn: 'Length',
+                        labelUr: 'لمبائی',
+                        value: data['length'],
+                        onTap: () => _openBottomEditor(
+                          'length',
+                          'Length',
+                          'لمبائی',
+                          data['length'],
+                        ),
+                      ),
+                    ),
+                  ],
                 );
-              }
+              },
             ),
           ),
         ],
@@ -395,6 +393,7 @@ class _MeasurementEditorSheet extends StatefulWidget {
 
 class _MeasurementEditorSheetState extends State<_MeasurementEditorSheet> {
   late double _value;
+  late TextEditingController _controller;
 
   @override
   void initState() {
@@ -402,10 +401,28 @@ class _MeasurementEditorSheetState extends State<_MeasurementEditorSheet> {
     _value =
         double.tryParse(widget.initialValue?.replaceAll('"', '') ?? '30') ??
         30.0;
+    _controller = TextEditingController(text: _value.toStringAsFixed(1));
   }
 
-  void _increment() => setState(() => _value += 0.5);
-  void _decrement() => setState(() => _value -= 0.5);
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _increment() {
+    setState(() {
+      _value = double.parse((_value + 0.1).toStringAsFixed(1));
+      _controller.text = _value.toStringAsFixed(1);
+    });
+  }
+
+  void _decrement() {
+    setState(() {
+      _value = double.parse((_value - 0.1).toStringAsFixed(1));
+      _controller.text = _value.toStringAsFixed(1);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -458,13 +475,41 @@ class _MeasurementEditorSheetState extends State<_MeasurementEditorSheet> {
                 ),
               ),
               const SizedBox(width: 24),
-              Text(
-                '$_value"',
-                style: const TextStyle(
-                  fontFamily: 'Roboto Mono',
-                  fontSize: 48,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.charcoalThread,
+              SizedBox(
+                width: 140,
+                child: TextField(
+                  controller: _controller,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d{0,2}(\.\d{0,1})?$')),
+                  ],
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontFamily: 'Roboto Mono',
+                    fontSize: 48,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.charcoalThread,
+                  ),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                    suffixText: '"',
+                    suffixStyle: TextStyle(
+                      fontFamily: 'Roboto Mono',
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.charcoalThread,
+                    ),
+                  ),
+                  onChanged: (val) {
+                    final parsed = double.tryParse(val);
+                    if (parsed != null) {
+                      setState(() {
+                        _value = parsed;
+                      });
+                    }
+                  },
                 ),
               ),
               const SizedBox(width: 24),
@@ -479,62 +524,60 @@ class _MeasurementEditorSheetState extends State<_MeasurementEditorSheet> {
             ],
           ),
           const SizedBox(height: 48),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: const BorderSide(color: AppColors.fabricGrey),
-                      ),
-                      elevation: 0,
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: const BorderSide(color: AppColors.fabricGrey),
                     ),
-                    onPressed: () {
-                      widget.onSave(''); // Clear the value
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text(
-                      'Clear',
-                      style: TextStyle(
-                        fontFamily: 'Noto Sans',
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.charcoalThread,
-                      ),
+                    elevation: 0,
+                  ),
+                  onPressed: () {
+                    widget.onSave(''); // Clear the value
+                  },
+                  child: const Text(
+                    'Clear',
+                    style: TextStyle(
+                      fontFamily: 'Noto Sans',
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.charcoalThread,
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.brassTape,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.brassTape,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    onPressed: () {
-                      widget.onSave('$_value"');
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text(
-                      'Done',
-                      style: TextStyle(
-                        fontFamily: 'Noto Sans',
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
+                    elevation: 0,
+                  ),
+                  onPressed: () {
+                    widget.onSave('$_value"');
+                  },
+                  child: const Text(
+                    'Done',
+                    style: TextStyle(
+                      fontFamily: 'Noto Sans',
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
         ],
       ),
     );
