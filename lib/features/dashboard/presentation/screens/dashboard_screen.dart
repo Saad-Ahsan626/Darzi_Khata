@@ -73,21 +73,12 @@ class DashboardScreen extends ConsumerWidget {
           final now = DateTime.now();
           final today = DateTime(now.year, now.month, now.day);
           
-          // "This Month" revenue based on cash received (advance + balance at delivery)
+          // "This Month" revenue based on actual cash collected for orders created this month
           double monthRevenue = 0;
           for (var order in orders) {
             final advance = order.advancePaid;
-            final remaining = order.totalAmount - advance;
-
             if (advance > 0 && order.createdAt.year == now.year && order.createdAt.month == now.month) {
               monthRevenue += advance;
-            }
-
-            if (order.status == 'Delivered' && order.deliveredAt != null && remaining > 0) {
-              final dDate = order.deliveredAt!;
-              if (dDate.year == now.year && dDate.month == now.month) {
-                monthRevenue += remaining;
-              }
             }
           }
 

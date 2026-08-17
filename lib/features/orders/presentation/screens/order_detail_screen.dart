@@ -280,6 +280,69 @@ class OrderDetailScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 32),
 
+                      // If order is Delivered but still has a balance, show Collect Payment button
+                      if (order.status == 'Delivered' && (order.totalAmount - order.advancePaid) > 0)
+                        ElevatedButton(
+                          onPressed: () async {
+                            final balance = order.totalAmount - order.advancePaid;
+                            final confirmed = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                backgroundColor: AppColors.charcoalThread,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                title: const Text('Collect Payment', style: TextStyle(color: AppColors.tailorChalk, fontFamily: 'Zilla Slab')),
+                                content: Text(
+                                  'Collect the pending due of Rs ${balance.toStringAsFixed(0)}?',
+                                  style: const TextStyle(color: AppColors.ghost, fontFamily: 'Noto Sans'),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, false),
+                                    child: const Text('Cancel', style: TextStyle(color: AppColors.fabricGrey)),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () => Navigator.pop(ctx, true),
+                                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.brassTape),
+                                    child: const Text('Mark as Paid', style: TextStyle(color: Colors.white)),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (confirmed == true) {
+                              final updatedOrder = order_entity.Order(
+                                id: order.id,
+                                customerId: order.customerId,
+                                measurementId: order.measurementId,
+                                garmentType: order.garmentType,
+                                status: order.status,
+                                deliveryDate: order.deliveryDate,
+                                totalAmount: order.totalAmount,
+                                advancePaid: order.totalAmount, // Clear the due
+                                notes: order.notes,
+                                createdAt: order.createdAt,
+                                deliveredAt: DateTime.now(), // Update time of final payment
+                                ownerId: order.ownerId,
+                                syncStatus: order.syncStatus,
+                              );
+                              ref.read(ordersNotifierProvider.notifier).updateOrder(updatedOrder);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.brassTape,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            'Collect Due Amount',
+                            style: TextStyle(fontFamily: 'Noto Sans', fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                          ),
+                        ),
+                        
+                      if (order.status == 'Delivered' && (order.totalAmount - order.advancePaid) > 0)
+                        const SizedBox(height: 12),
+
                       if (order.status != 'Delivered')
                         ElevatedButton(
                           onPressed: () async {

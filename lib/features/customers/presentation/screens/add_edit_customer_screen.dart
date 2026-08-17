@@ -32,6 +32,13 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
   @override
   void initState() {
     super.initState();
+    
+    // Add listeners to rebuild UI and hide hints when typing
+    _nameController.addListener(() => setState(() {}));
+    _urduNameController.addListener(() => setState(() {}));
+    _phoneController.addListener(() => setState(() {}));
+    _addressController.addListener(() => setState(() {}));
+
     if (widget.existingCustomer != null) {
       _nameController.text = widget.existingCustomer!.name;
       _urduNameController.text = widget.existingCustomer!.urduName ?? '';
@@ -88,9 +95,10 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
     return fileName;
   }
 
-  InputDecoration _inputDecoration(String hintText) {
+  InputDecoration _inputDecoration(String hintText, TextEditingController controller, {bool? hideHintOverride}) {
+    final bool hideHint = hideHintOverride ?? controller.text.isNotEmpty;
     return InputDecoration(
-      hintText: hintText,
+      hintText: hideHint ? '' : hintText,
       hintStyle: const TextStyle(
         color: AppColors.inkMuted,
         fontFamily: 'Noto Sans',
@@ -222,7 +230,11 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
             TextFormField(
               controller: _nameController,
               style: const TextStyle(fontFamily: 'Noto Sans', fontSize: 16),
-              decoration: _inputDecoration('e.g. Ali Khan'),
+              decoration: _inputDecoration(
+                'e.g. Ali Khan', 
+                _nameController,
+                hideHintOverride: _nameController.text.isNotEmpty || _urduNameController.text.isNotEmpty,
+              ),
               textCapitalization: TextCapitalization.words,
               validator: (val) {
                 if (val == null || val.trim().isEmpty) return 'Name is required';
@@ -241,7 +253,11 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
                 fontFamily: 'Noto Nastaliq Urdu',
                 fontSize: 16,
               ),
-              decoration: _inputDecoration('علی خان'),
+              decoration: _inputDecoration(
+                'علی خان', 
+                _urduNameController,
+                hideHintOverride: _nameController.text.isNotEmpty || _urduNameController.text.isNotEmpty,
+              ),
             ),
             const SizedBox(height: 16),
 
@@ -250,7 +266,7 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
               controller: _phoneController,
               keyboardType: TextInputType.phone,
               style: const TextStyle(fontFamily: 'Roboto Mono', fontSize: 16),
-              decoration: _inputDecoration('e.g. 0300 1234567'),
+              decoration: _inputDecoration('e.g. 0300 1234567', _phoneController),
               validator: (val) {
                 if (val == null || val.trim().isEmpty) return null;
                 final clean = val.replaceAll(RegExp(r'[-\s]'), '');
@@ -266,7 +282,7 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
             TextFormField(
               controller: _addressController,
               style: const TextStyle(fontFamily: 'Noto Sans', fontSize: 16),
-              decoration: _inputDecoration('e.g. Shop 12, Main Market'),
+              decoration: _inputDecoration('e.g. Shop 12, Main Market', _addressController),
               maxLines: 2,
             ),
             const SizedBox(height: 32),

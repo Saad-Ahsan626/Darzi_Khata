@@ -70,12 +70,10 @@ class RevenueScreen extends ConsumerWidget {
           double thisYear = 0;
           double lifetime = 0;
 
-          // Cash received = advancePaid at createdAt + (total - advance) at deliveredAt
+          // Cash received = advancePaid (summed by order creation date)
           for (final order in orders) {
             final advance = order.advancePaid;
-            final remaining = order.totalAmount - advance;
 
-            // Process advance (paid at creation)
             if (advance > 0) {
               lifetime += advance;
               if (_isSameYear(order.createdAt, now)) {
@@ -84,21 +82,6 @@ class RevenueScreen extends ConsumerWidget {
                   thisMonth += advance;
                   if (_isSameWeek(order.createdAt, now)) {
                     thisWeek += advance;
-                  }
-                }
-              }
-            }
-
-            // Process remaining (paid at delivery)
-            if (order.status == 'Delivered' && order.deliveredAt != null && remaining > 0) {
-              final dDate = order.deliveredAt!;
-              lifetime += remaining;
-              if (_isSameYear(dDate, now)) {
-                thisYear += remaining;
-                if (_isSameMonth(dDate, now)) {
-                  thisMonth += remaining;
-                  if (_isSameWeek(dDate, now)) {
-                    thisWeek += remaining;
                   }
                 }
               }
