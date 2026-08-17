@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tailor_khata/core/theme/app_colors.dart';
 import 'package:tailor_khata/features/orders/presentation/providers/orders_notifier.dart';
+import 'package:tailor_khata/features/customers/presentation/providers/customers_notifier.dart';
 import 'package:tailor_khata/features/dashboard/presentation/widgets/dashboard_delivery_card.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -10,6 +11,7 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ordersAsync = ref.watch(ordersNotifierProvider);
+    final customersAsync = ref.watch(customersNotifierProvider);
 
     return Scaffold(
       backgroundColor: AppColors.tailorChalk,
@@ -255,7 +257,16 @@ class DashboardScreen extends ConsumerWidget {
                     )
                   )
                 else
-                  ...todaysDeliveries.map((order) => DashboardDeliveryCard(order: order)),
+                  ...todaysDeliveries.map((order) {
+                    final customers = customersAsync.value ?? [];
+                    final customerList = customers.where((c) => c.id == order.customerId).toList();
+                    final customerName = customerList.isNotEmpty ? customerList.first.name : 'Unknown Customer';
+                    
+                    return DashboardDeliveryCard(
+                      order: order,
+                      customerName: customerName,
+                    );
+                  }),
               ],
             ),
           );

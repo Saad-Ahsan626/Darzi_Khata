@@ -1,29 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tailor_khata/core/theme/app_colors.dart';
 import 'package:tailor_khata/features/orders/domain/entities/order.dart';
-import 'package:tailor_khata/features/customers/presentation/providers/customers_notifier.dart';
 import 'package:intl/intl.dart';
 
-class DashboardDeliveryCard extends ConsumerWidget {
+class DashboardDeliveryCard extends StatelessWidget {
   final Order order;
+  final String customerName;
 
-  const DashboardDeliveryCard({super.key, required this.order});
+  const DashboardDeliveryCard({
+    super.key,
+    required this.order,
+    required this.customerName,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final balance = order.totalAmount - order.advancePaid;
     final isPaid = balance <= 0;
-
-    final customersAsync = ref.watch(customersNotifierProvider);
-    String customerName = 'Unknown Customer';
-    customersAsync.whenData((customers) {
-      final cList = customers.where((c) => c.id == order.customerId).toList();
-      if (cList.isNotEmpty) {
-        customerName = cList.first.name;
-      }
-    });
 
     return GestureDetector(
       onTap: () {
@@ -61,7 +55,7 @@ class DashboardDeliveryCard extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                
+
                 // Details
                 Expanded(
                   child: Column(
@@ -92,7 +86,7 @@ class DashboardDeliveryCard extends ConsumerWidget {
                     ],
                   ),
                 ),
-                
+
                 // Balance
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,

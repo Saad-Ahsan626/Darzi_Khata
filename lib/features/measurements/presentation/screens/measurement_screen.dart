@@ -280,7 +280,11 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
 
           // 3D Canvas
           Expanded(
-            child: Stack(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final height = constraints.maxHeight;
+                final width = constraints.maxWidth;
+                return Stack(
               children: [
                 // 3D Viewer
                 Cube(
@@ -290,8 +294,8 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
 
                 // Floating Chips Overlay (Front View Layout)
                   Positioned(
-                    top: 80,
-                    left: 80,
+                    top: height * 0.15,
+                    left: width * 0.2,
                     child: MeasurementChip(
                       labelEn: 'Neck',
                       labelUr: 'گلا',
@@ -305,8 +309,8 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                     ),
                   ),
                   Positioned(
-                    top: 170,
-                    right: 50,
+                    top: height * 0.32,
+                    right: width * 0.12,
                     child: MeasurementChip(
                       labelEn: 'Chest',
                       labelUr: 'چھاتی',
@@ -320,8 +324,8 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                     ),
                   ),
                   Positioned(
-                    top: 200,
-                    left: 50,
+                    top: height * 0.40,
+                    left: width * 0.12,
                     child: MeasurementChip(
                       labelEn: 'Waist',
                       labelUr: 'کمر',
@@ -335,8 +339,8 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                     ),
                   ),
                   Positioned(
-                    top: 260,
-                    right: 50,
+                    top: height * 0.55,
+                    right: width * 0.12,
                     child: MeasurementChip(
                       labelEn: 'Hip',
                       labelUr: 'ہپ',
@@ -346,8 +350,8 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                     ),
                   ),
                   Positioned(
-                    top: 300,
-                    left: 30,
+                    top: height * 0.70,
+                    left: width * 0.1,
                     child: MeasurementChip(
                       labelEn: 'Length',
                       labelUr: 'لمبائی',
@@ -360,7 +364,9 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                       ),
                     ),
                   ),
-              ],
+                ],
+                );
+              }
             ),
           ),
         ],
@@ -473,31 +479,62 @@ class _MeasurementEditorSheetState extends State<_MeasurementEditorSheet> {
             ],
           ),
           const SizedBox(height: 48),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.brassTape,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: const BorderSide(color: AppColors.fabricGrey),
+                      ),
+                      elevation: 0,
+                    ),
+                    onPressed: () {
+                      widget.onSave(''); // Clear the value
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text(
+                      'Clear',
+                      style: TextStyle(
+                        fontFamily: 'Noto Sans',
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.charcoalThread,
+                      ),
+                    ),
+                  ),
                 ),
-                elevation: 0,
-              ),
-              onPressed: () {
-                widget.onSave('$_value"');
-              },
-              child: const Text(
-                'Done',
-                style: TextStyle(
-                  fontFamily: 'Noto Sans',
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.brassTape,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    onPressed: () {
+                      widget.onSave('$_value"');
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text(
+                      'Done',
+                      style: TextStyle(
+                        fontFamily: 'Noto Sans',
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ),
         ],
       ),
     );
