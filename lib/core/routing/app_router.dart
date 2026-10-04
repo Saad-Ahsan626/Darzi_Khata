@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tailor_khata/core/dev/design_system_preview.dart';
 import 'package:tailor_khata/core/shell/app_shell.dart';
 import 'package:tailor_khata/features/auth/presentation/screens/splash_screen.dart';
 import 'package:tailor_khata/features/auth/presentation/screens/onboarding_screen.dart';
@@ -15,10 +17,21 @@ import 'package:tailor_khata/features/orders/presentation/screens/new_edit_order
 import 'package:tailor_khata/features/settings/presentation/screens/settings_screen.dart';
 import 'package:tailor_khata/features/dashboard/presentation/screens/revenue_screen.dart';
 
-final goRouter = GoRouter(
-  initialLocation: '/splash',
+final goRouter = createAppRouter();
+
+GoRouter createAppRouter({String? initialLocation}) => GoRouter(
+  initialLocation:
+      initialLocation ??
+      (kDebugMode && const bool.fromEnvironment('SHOW_DESIGN_PREVIEW')
+          ? '/design-preview'
+          : '/splash'),
   restorationScopeId: 'app_router',
   routes: [
+    if (kDebugMode)
+      GoRoute(
+        path: '/design-preview',
+        builder: (context, state) => const DesignSystemPreview(),
+      ),
     // Auth Routes
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(

@@ -52,15 +52,7 @@ class WelcomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
 
-            // Urdu Title
-            const Text(
-              'ٹیلر کھاتہ',
-              style: TextStyle(
-                fontFamily: AppTypography.fontFamily,
-                fontSize: 22,
-                color: AppPalette.carbon,
-              ),
-            ),
+            // App title
             const SizedBox(height: 4),
 
             // Subtitle

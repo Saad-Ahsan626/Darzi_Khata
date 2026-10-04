@@ -123,22 +123,6 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              if (customer.urduName != null &&
-                                  customer.urduName!.isNotEmpty) ...[
-                                const SizedBox(width: 8),
-                                Flexible(
-                                  child: Text(
-                                    customer.urduName!,
-                                    style: const TextStyle(
-                                      fontFamily: AppTypography.fontFamily,
-                                      fontSize: 18,
-                                      color: AppPalette.white,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
                             ],
                           ),
                           const SizedBox(height: 4),

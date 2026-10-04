@@ -31,10 +31,7 @@ class CustomerAvatar extends StatelessWidget {
   }
 
   String _getInitial() {
-    if (customer.urduName != null && customer.urduName!.isNotEmpty) {
-      return customer.urduName!.trim().substring(0, 1);
-    }
-    if (customer.name.isNotEmpty) {
+    if (customer.name.trim().isNotEmpty) {
       return customer.name.trim().substring(0, 1).toUpperCase();
     }
     return '?';

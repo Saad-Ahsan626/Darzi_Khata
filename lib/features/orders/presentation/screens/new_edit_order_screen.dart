@@ -115,22 +115,7 @@ class _NewEditOrderScreenState extends ConsumerState<NewEditOrderScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 18.0),
-            child: Center(
-              child: Text(
-                'نیا آرڈر',
-                style: TextStyle(
-                  color: AppPalette.white,
-                  fontFamily: AppTypography.fontFamily,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],
+        actions: const [],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

@@ -80,14 +80,6 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'ٹیلر کھاتہ',
-                    style: TextStyle(
-                      fontFamily: AppTypography.fontFamily,
-                      fontSize: 24,
-                      color: AppPalette.white, // Light accent on carbon
-                    ),
-                  ),
                 ],
               ),
             ),

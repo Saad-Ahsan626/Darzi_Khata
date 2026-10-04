@@ -13,15 +13,9 @@ class StatusStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const statuses = [
-      {'en': 'Received', 'ur': 'وصول کیا'},
-      {'en': 'Cutting', 'ur': 'کٹنگ'},
-      {'en': 'Stitching', 'ur': 'سلائی'},
-      {'en': 'Ready', 'ur': 'تیار'},
-      {'en': 'Delivered', 'ur': 'ڈیلیورڈ'},
-    ];
+    const statuses = ['Received', 'Cutting', 'Stitching', 'Ready', 'Delivered'];
 
-    final currentIndex = statuses.indexWhere((s) => s['en'] == currentStatus);
+    final currentIndex = statuses.indexOf(currentStatus);
 
     return Column(
       children: List.generate(statuses.length, (index) {
@@ -32,7 +26,7 @@ class StatusStepper extends StatelessWidget {
         return GestureDetector(
           onTap: currentStatus == 'Delivered'
               ? null
-              : () => onStatusChanged(status['en']!),
+              : () => onStatusChanged(status),
           child: Container(
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -71,22 +65,13 @@ class StatusStepper extends StatelessWidget {
                 const SizedBox(width: 16),
                 Expanded(
                   child: Text(
-                    status['en']!,
+                    status,
                     style: TextStyle(
                       fontFamily: AppTypography.fontFamily,
                       fontSize: 16,
                       fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w500,
                       color: AppPalette.carbon,
                     ),
-                  ),
-                ),
-                Text(
-                  status['ur']!,
-                  style: TextStyle(
-                    fontFamily: AppTypography.fontFamily,
-                    fontSize: 16,
-                    fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w400,
-                    color: AppPalette.carbon,
                   ),
                 ),
               ],

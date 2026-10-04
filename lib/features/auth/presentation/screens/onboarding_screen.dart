@@ -60,27 +60,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     titleEn: 'Digital Measurements',
                     descEn:
                         'Record measurements once on a digital model. Find them instantly the next time your customer visits.',
-                    titleUr: 'ڈیجیٹل ناپ',
-                    descUr:
-                        'گاہک کا ناپ ایک بار محفوظ کریں اور اگلی بار فوری تلاش کریں۔',
                   ),
                   _buildPage(
                     iconWidget: _buildFakeOrderCard(),
                     titleEn: 'Track Every Order',
                     descEn:
                         'Never miss a delivery date. Track every suit from cutting to delivery with real-time status updates.',
-                    titleUr: 'آرڈر ٹریکنگ',
-                    descUr:
-                        'ہر آرڈر کی مکمل تفصیلات اور ڈیلیوری کی تاریخ پر نظر رکھیں۔',
                   ),
                   _buildPage(
                     imagePath: 'assets/on_boarding/3rd.png',
                     titleEn: 'Works Fully Offline',
                     descEn:
                         'Your data stays on your device. Manage your shop anywhere, even without internet. Secure and private.',
-                    titleUr: 'انٹرنیٹ کے بغیر',
-                    descUr:
-                        'آپ کا تمام ڈیٹا محفوظ ہے اور بغیر انٹرنیٹ کے بھی کام کرتا ہے۔',
                   ),
                 ],
               ),
@@ -219,8 +210,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     String? imagePath,
     required String titleEn,
     required String descEn,
-    required String titleUr,
-    required String descUr,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32.0),
@@ -280,27 +269,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          Text(
-            titleUr,
-            style: const TextStyle(
-              fontFamily: AppTypography.fontFamily,
-              fontSize: 20,
-              color: AppPalette.carbon,
-            ),
-            textAlign: TextAlign.center,
-          ),
           const SizedBox(height: 8),
-          Text(
-            descUr,
-            style: const TextStyle(
-              fontFamily: AppTypography.fontFamily,
-              fontSize: 14,
-              color: AppPalette.carbon,
-              height: 2.0,
-            ),
-            textAlign: TextAlign.center,
-            textDirection: TextDirection.rtl,
-          ),
         ],
       ),
     );

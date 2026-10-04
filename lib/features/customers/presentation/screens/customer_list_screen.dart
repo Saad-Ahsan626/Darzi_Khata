@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:tailor_khata/core/widgets/app_widgets.dart';
 import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/features/customers/presentation/providers/customers_notifier.dart';
 import 'package:tailor_khata/features/customers/presentation/widgets/customer_card.dart';
@@ -30,27 +32,24 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
       appBar: AppBar(
         backgroundColor: AppPalette.carbon,
         elevation: 0,
-        title: const Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Customers',
-              style: TextStyle(
-                fontFamily: AppTypography.fontFamily,
-                fontSize: 22,
-                color: AppPalette.white,
-              ),
-            ),
-            Text(
-              'گاہک',
-              style: TextStyle(
-                fontFamily: AppTypography.fontFamily,
-                fontSize: 18,
-                color: AppPalette.white,
-              ),
-            ),
-          ],
+        title: const Text(
+          'Customers',
+          style: TextStyle(
+            fontFamily: AppTypography.fontFamily,
+            fontSize: 22,
+            color: AppPalette.white,
+          ),
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Add customer',
+            icon: const Icon(
+              Icons.person_add_outlined,
+              color: AppPalette.white,
+            ),
+            onPressed: () => context.push('/customers/new'),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(70),
           child: Padding(
@@ -111,25 +110,11 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
 
           if (customers.isEmpty) {
             return Center(
-              child: Container(
-                margin: const EdgeInsets.all(24),
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: AppPalette.lineStrong,
-                    style: BorderStyle.none,
-                  ),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Text(
-                  'No customers here yet — tap + to create your first one.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: AppTypography.fontFamily,
-                    fontSize: 15,
-                    color: AppPalette.ink70,
-                  ),
-                ),
+              child: AppFeedback(
+                title: 'No customers yet',
+                message: 'Add your first customer to get started.',
+                actionLabel: 'Add customer',
+                onAction: () => context.push('/customers/new'),
               ),
             );
           }

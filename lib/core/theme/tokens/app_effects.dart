@@ -3,7 +3,7 @@ import 'package:flutter/painting.dart';
 import 'app_palette.dart';
 
 /// Glass specification from the JSON export. These values do not apply an
-/// effect themselves; future presentation widgets own clipping and filtering.
+/// effect themselves; GlassSurface owns clipping, filtering and fallbacks.
 abstract final class AppGlass {
   static const blurSigma = 20.0;
 

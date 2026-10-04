@@ -6,8 +6,9 @@ balances in Pakistani rupees.
 
 The app is under active development. Customer and order workflows use local
 SQLite storage. The redesign uses carbon black, white, grey olive, and bundled
-Inter typography. Shared tokens and the Material theme are implemented;
-individual screens are being redesigned incrementally.
+Inter typography. Phase 1 includes shared tokens, the Material theme, reusable
+components, floating glass navigation, and an English-only interface. Individual
+screens are being redesigned incrementally in the following phases.
 
 ## Current functionality
 
@@ -18,14 +19,14 @@ individual screens are being redesigned incrementally.
 | Measurements | Save values per customer and garment | Replace 3D viewer with grouped fields; separate fit profiles and convert units |
 | Orders | Create, due-date filters, status changes, delivery/payment confirmation | General editing, measurement linking, payment correctness |
 | Dashboard/revenue | Delivery list, balances, period summaries | New layouts and payment-date-based reporting |
-| Design foundation | Tokens, Material theme, offline fonts, migrated colors/fonts | Component library, floating glass navigation, full layouts |
+| Design foundation | Tokens, Material theme, offline fonts, component library, glass navigation, debug preview | Full feature-screen layouts |
 | Login/settings | Placeholder screens | Authentication, shop settings, language/unit preferences |
 | WhatsApp | Buttons with placeholder feedback | Actual prepared-conversation integration |
 | Invoices/backup/cloud | Planned | Export, restore, accounts, synchronization |
 
-The redesign references are English-only and use form-based measurements. Some
-existing screens still contain Urdu labels and the 3D model while their dedicated
-redesign stages are pending. Theme integration does not replace those workflows.
+The interface is English-only. Previously stored optional Urdu customer names
+remain in storage and are preserved when editing a customer. The existing 3D
+measurement viewer remains until its form-based replacement in Phase 4.
 
 ## Run locally
 
@@ -71,6 +72,8 @@ lib/
     routing/        go_router routes
     shell/          Navigation shell
     theme/          Shared presentation theme and tokens
+    widgets/        Reusable presentation components; values and callbacks only
+    dev/            Debug-only component preview
     usecase/        UseCase contract
   features/
     auth/
@@ -129,8 +132,32 @@ The barrel exports `AppPalette`, `AppTypography`, `AppSpacing`, `AppRadii`,
 tokens to Material controls. `AppColors` contains deprecated aliases only.
 
 The theme covers text, button states, inputs, cards, tabs, dialogs, bottom sheets,
-snackbars, progress, text selection, and existing navigation controls. Custom glass
-navigation and complete screen layouts belong to later stages.
+snackbars, progress, text selection, and navigation controls. Shared widgets are
+exported by `core/widgets/app_widgets.dart`; their usage is documented in
+`core/widgets/README.md`. They import no feature entities, providers, or storage.
+
+Floating navigation appears on Home, Customers, Orders, and Settings. Detail,
+entry, and measurement routes use the full viewport. Keyboard visibility hides
+the navigation. Its layout reserves space for lists and bottom safe areas; add
+actions are in the Customers and Orders headers and empty states.
+
+Glass has a bounded blur, fine borders, and solid light/dark fallbacks. High
+contrast uses opaque surfaces automatically; callers can disable blur explicitly.
+Custom selection/navigation transitions respect reduced motion.
+
+### Review the foundation
+
+In a debug build, open **Settings → Design system preview**, or start there:
+
+```sh
+flutter run -d <device-id> --dart-define=SHOW_DESIGN_PREVIEW=true
+```
+
+The `/design-preview` route and Settings entry are available only in debug mode.
+The gallery shows button states, persistent-label fields, validation, date picking,
+cards, light/dark glass and solid fallbacks, badges, selection controls, loading,
+empty/error feedback, a sheet, a confirmation dialog, and navigation. Sample
+interactions do not access the database.
 
 Inter weights 400/500/600/700 are bundled in `assets/fonts/inter/`, registered in
 `pubspec.yaml`, and load without runtime network requests. The SIL Open Font
@@ -168,13 +195,18 @@ not yet available.
 
 ```sh
 flutter analyze --no-pub
+flutter test --no-pub test/presentation_foundation_test.dart
 ```
 
-Two database tests exist in local workspaces under `test/`. That directory is
-ignored by Git, so fresh clones do not receive them. Where present, run
-`flutter test --no-pub`. They use a persistent database and a fixed customer ID;
-the insertion test can fail on repeated runs. Isolated databases and broader
-feature tests are needed.
+The tracked foundation tests use in-memory provider fixtures, bundled fonts, and
+the real app routes. They verify navigation/add/back behavior, keyboard and safe
+areas, fields, disabled/loading buttons, glass fallbacks, 360/390px widths with
+larger text, and preservation of stored customer names during English edits.
+
+Two older database tests may exist locally under `test/`; they remain ignored by
+Git. They use a persistent database and a fixed customer ID, so the insertion
+test can fail on repeated runs. Use the explicit test command above for repeatable
+foundation checks. Isolated database and broader feature tests are still needed.
 
 Important existing issues for subsequent feature work:
 
@@ -187,5 +219,6 @@ Important existing issues for subsequent feature work:
 - WhatsApp feedback does not send a message.
 
 These are feature/data-flow tasks; theme integration does not change their logic.
-Next stages are reusable components, floating navigation, dashboard/customer
-layouts, form-based measurements, order workflow, and settings.
+Phase 1's visual foundation is implemented. The remaining phases are dashboard,
+customer workflow, form-based measurements, orders/payments, remaining screens,
+and complete end-to-end verification.

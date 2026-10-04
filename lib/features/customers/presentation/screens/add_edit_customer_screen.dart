@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:tailor_khata/core/theme/design_tokens.dart';
+import 'package:tailor_khata/core/widgets/app_widgets.dart';
 import 'package:tailor_khata/features/customers/domain/entities/customer.dart';
 import 'package:tailor_khata/features/customers/presentation/providers/customers_notifier.dart';
 
@@ -22,7 +23,6 @@ class AddEditCustomerScreen extends ConsumerStatefulWidget {
 class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _urduNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
 
@@ -33,15 +33,8 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
   void initState() {
     super.initState();
 
-    // Add listeners to rebuild UI and hide hints when typing
-    _nameController.addListener(() => setState(() {}));
-    _urduNameController.addListener(() => setState(() {}));
-    _phoneController.addListener(() => setState(() {}));
-    _addressController.addListener(() => setState(() {}));
-
     if (widget.existingCustomer != null) {
       _nameController.text = widget.existingCustomer!.name;
-      _urduNameController.text = widget.existingCustomer!.urduName ?? '';
       _phoneController.text = widget.existingCustomer!.phone ?? '';
       _addressController.text = widget.existingCustomer!.address ?? '';
       _savedImagePath = widget.existingCustomer!.imagePath;
@@ -64,7 +57,6 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _urduNameController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
     super.dispose();
@@ -95,52 +87,6 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
     return fileName;
   }
 
-  InputDecoration _inputDecoration(
-    String hintText,
-    TextEditingController controller, {
-    bool? hideHintOverride,
-  }) {
-    final bool hideHint = hideHintOverride ?? controller.text.isNotEmpty;
-    return InputDecoration(
-      hintText: hideHint ? '' : hintText,
-      hintStyle: const TextStyle(
-        color: AppPalette.ink70,
-        fontFamily: AppTypography.fontFamily,
-      ),
-      filled: true,
-      fillColor: AppPalette.white,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppPalette.lineStrong),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppPalette.lineStrong),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppPalette.carbon, width: 2),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: AppPalette.ink70,
-          fontSize: 11,
-          fontFamily: AppTypography.fontFamily,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.existingCustomer != null;
@@ -156,30 +102,17 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
           ),
           onPressed: () => context.pop(),
         ),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              isEditing ? 'Edit Customer' : 'New Customer',
-              style: const TextStyle(
-                fontFamily: AppTypography.fontFamily,
-                fontSize: 22,
-                color: AppPalette.white,
-              ),
-            ),
-            Text(
-              isEditing ? 'ترمیم' : 'نیا گاہک',
-              style: const TextStyle(
-                fontFamily: AppTypography.fontFamily,
-                fontSize: 18,
-                color: AppPalette.white,
-              ),
-            ),
-          ],
+        title: Text(
+          isEditing ? 'Edit Customer' : 'New Customer',
+          style: const TextStyle(
+            fontFamily: AppTypography.fontFamily,
+            fontSize: 22,
+            color: AppPalette.white,
+          ),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(AppSpacing.screenPadding),
         child: Form(
           key: _formKey,
           child: Column(
@@ -233,154 +166,91 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
               ),
               const SizedBox(height: 32),
 
-              _buildLabel('ENGLISH NAME'),
-              TextFormField(
+              AppTextField(
+                label: 'Full name',
                 controller: _nameController,
-                style: const TextStyle(
-                  fontFamily: AppTypography.fontFamily,
-                  fontSize: 16,
-                ),
-                decoration: _inputDecoration(
-                  'e.g. Ali Khan',
-                  _nameController,
-                  hideHintOverride:
-                      _nameController.text.isNotEmpty ||
-                      _urduNameController.text.isNotEmpty,
-                ),
+                hint: 'e.g. Ali Khan',
+                textInputAction: TextInputAction.next,
                 textCapitalization: TextCapitalization.words,
-                validator: (val) {
-                  if (val == null || val.trim().isEmpty) {
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
                     return 'Name is required';
                   }
-                  if (val.length > 50) return 'Name is too long';
+                  if (value.length > 50) return 'Name is too long';
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
-
-              _buildLabel('URDU NAME / اردو نام'),
-              TextFormField(
-                controller: _urduNameController,
-                textAlign: TextAlign.right,
-                textDirection: TextDirection.rtl,
-                style: const TextStyle(
-                  fontFamily: AppTypography.fontFamily,
-                  fontSize: 16,
-                ),
-                decoration: _inputDecoration(
-                  'علی خان',
-                  _urduNameController,
-                  hideHintOverride:
-                      _nameController.text.isNotEmpty ||
-                      _urduNameController.text.isNotEmpty,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              _buildLabel('PHONE NUMBER'),
-              TextFormField(
+              const SizedBox(height: AppSpacing.lg),
+              AppTextField(
+                label: 'Phone number',
                 controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                style: const TextStyle(
-                  fontFamily: AppTypography.fontFamily,
-                  fontFeatures: AppTypography.tabularFigures,
-                  fontSize: 16,
-                ),
-                decoration: _inputDecoration(
-                  'e.g. 0300 1234567',
-                  _phoneController,
-                ),
-                validator: (val) {
-                  if (val == null || val.trim().isEmpty) return null;
-                  final clean = val.replaceAll(RegExp(r'[-\s]'), '');
+                hint: 'e.g. 0300 1234567',
+                kind: AppFieldKind.phone,
+                textInputAction: TextInputAction.next,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) return null;
+                  final clean = value.replaceAll(RegExp(r'[-\s]'), '');
                   if (!RegExp(r'^(?:\+92|0)[0-9]{9,10}$').hasMatch(clean)) {
                     return 'Invalid Pakistani phone number';
                   }
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
-
-              _buildLabel('ADDRESS (OPTIONAL)'),
-              TextFormField(
+              const SizedBox(height: AppSpacing.lg),
+              AppTextField(
+                label: 'Address (optional)',
                 controller: _addressController,
-                style: const TextStyle(
-                  fontFamily: AppTypography.fontFamily,
-                  fontSize: 16,
-                ),
-                decoration: _inputDecoration(
-                  'e.g. Shop 12, Main Market',
-                  _addressController,
-                ),
+                hint: 'e.g. Shop 12, Main Market',
                 maxLines: 2,
               ),
               const SizedBox(height: 32),
 
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppPalette.carbon,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  onPressed: () async {
-                    if (!_formKey.currentState!.validate()) return;
+              AppButton(
+                label: isEditing ? 'Save changes' : 'Save customer',
+                onPressed: () async {
+                  if (!_formKey.currentState!.validate()) return;
 
-                    final name = _nameController.text.trim();
+                  final name = _nameController.text.trim();
 
-                    final imagePath = await _saveImageLocally();
+                  final imagePath = await _saveImageLocally();
 
-                    final customer = Customer(
-                      id: isEditing
-                          ? widget.existingCustomer!.id
-                          : const Uuid().v4(),
-                      name: name,
-                      urduName: _urduNameController.text.trim(),
-                      phone: _phoneController.text.trim(),
-                      address: _addressController.text.trim(),
-                      imagePath: imagePath,
-                      createdAt: isEditing
-                          ? widget.existingCustomer!.createdAt
-                          : DateTime.now(),
-                    );
+                  final customer = Customer(
+                    id: isEditing
+                        ? widget.existingCustomer!.id
+                        : const Uuid().v4(),
+                    name: name,
+                    urduName: widget.existingCustomer?.urduName,
+                    phone: _phoneController.text.trim(),
+                    address: _addressController.text.trim(),
+                    imagePath: imagePath,
+                    createdAt: isEditing
+                        ? widget.existingCustomer!.createdAt
+                        : DateTime.now(),
+                  );
 
-                    if (isEditing) {
-                      ref
-                          .read(customersNotifierProvider.notifier)
-                          .updateCustomer(customer);
-                    } else {
-                      ref
-                          .read(customersNotifierProvider.notifier)
-                          .addCustomer(customer);
-                    }
+                  if (isEditing) {
+                    ref
+                        .read(customersNotifierProvider.notifier)
+                        .updateCustomer(customer);
+                  } else {
+                    ref
+                        .read(customersNotifierProvider.notifier)
+                        .addCustomer(customer);
+                  }
 
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            isEditing ? 'Customer updated' : 'Customer saved',
-                          ),
-                          behavior: SnackBarBehavior.floating,
-                          backgroundColor: AppPalette.carbon,
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          isEditing ? 'Customer updated' : 'Customer saved',
                         ),
-                      );
-                      context.pop();
-                    }
-                  },
-                  child: Text(
-                    isEditing ? 'Save Changes' : 'Save Customer',
-                    style: const TextStyle(
-                      fontFamily: AppTypography.fontFamily,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppPalette.white,
-                    ),
-                  ),
-                ),
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: AppPalette.carbon,
+                      ),
+                    );
+                    context.pop();
+                  }
+                },
               ),
             ],
           ),

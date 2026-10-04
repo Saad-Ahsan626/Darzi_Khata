@@ -3,14 +3,12 @@ import 'package:tailor_khata/core/theme/design_tokens.dart';
 
 class MeasurementChip extends StatelessWidget {
   final String labelEn;
-  final String labelUr;
   final String? value;
   final VoidCallback onTap;
 
   const MeasurementChip({
     super.key,
     required this.labelEn,
-    required this.labelUr,
     this.value,
     required this.onTap,
   });
@@ -54,14 +52,6 @@ class MeasurementChip extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  labelUr,
-                  style: const TextStyle(
-                    fontFamily: AppTypography.fontFamily,
-                    fontSize: 12,
-                    color: AppPalette.ink70,
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 4),

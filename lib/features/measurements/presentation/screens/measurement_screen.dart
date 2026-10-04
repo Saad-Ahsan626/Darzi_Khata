@@ -5,6 +5,7 @@ import 'package:flutter_cube/flutter_cube.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import 'package:tailor_khata/core/theme/design_tokens.dart';
+import 'package:tailor_khata/core/widgets/app_widgets.dart';
 import 'package:tailor_khata/features/measurements/domain/entities/measurement.dart';
 import 'package:tailor_khata/features/measurements/presentation/providers/measurements_notifier.dart';
 import 'package:tailor_khata/features/measurements/presentation/widgets/measurement_chip.dart';
@@ -59,19 +60,13 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
     }
   }
 
-  void _openBottomEditor(
-    String key,
-    String labelEn,
-    String labelUr,
-    String? currentValue,
-  ) {
+  void _openBottomEditor(String key, String labelEn, String? currentValue) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => _MeasurementEditorSheet(
         labelEn: labelEn,
-        labelUr: labelUr,
         initialValue: currentValue,
         onSave: (val) {
           _saveMeasurement(key, val);
@@ -154,81 +149,25 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                 ),
               ],
             ),
-            const Text(
-              'ناپ',
-              style: TextStyle(
-                fontFamily: AppTypography.fontFamily,
-                fontSize: 22,
-                color: AppPalette.white,
-              ),
-            ),
           ],
         ),
       ),
       body: Column(
         children: [
-          // Segmented Control (Fit Type)
-          Container(
-            color: AppPalette.surfaceControl,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _fitType = 'Formal Fit'),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: _fitType == 'Formal Fit'
-                            ? AppPalette.carbon
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Formal Fit',
-                        style: TextStyle(
-                          color: _fitType == 'Formal Fit'
-                              ? AppPalette.white
-                              : AppPalette.ink70,
-                          fontFamily: AppTypography.fontFamily,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _fitType = 'Casual Fit'),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: _fitType == 'Casual Fit'
-                            ? AppPalette.carbon
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Casual Fit',
-                        style: TextStyle(
-                          color: _fitType == 'Casual Fit'
-                              ? AppPalette.white
-                              : AppPalette.ink70,
-                          fontFamily: AppTypography.fontFamily,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.screenPadding,
+              vertical: AppSpacing.md,
+            ),
+            child: AppSegmentedControl<String>(
+              selected: _fitType,
+              onChanged: (fit) => setState(() => _fitType = fit),
+              options: const [
+                AppSelectionOption(value: 'Formal Fit', label: 'Formal fit'),
+                AppSelectionOption(value: 'Casual Fit', label: 'Casual fit'),
               ],
             ),
           ),
-
           // Garment Chips
           Container(
             height: 60,
@@ -292,14 +231,9 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                       left: width * 0.2,
                       child: MeasurementChip(
                         labelEn: 'Neck',
-                        labelUr: 'گلا',
                         value: data['neck'],
-                        onTap: () => _openBottomEditor(
-                          'neck',
-                          'Neck',
-                          'گلا',
-                          data['neck'],
-                        ),
+                        onTap: () =>
+                            _openBottomEditor('neck', 'Neck', data['neck']),
                       ),
                     ),
                     Positioned(
@@ -307,14 +241,9 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                       right: width * 0.12,
                       child: MeasurementChip(
                         labelEn: 'Chest',
-                        labelUr: 'چھاتی',
                         value: data['chest'],
-                        onTap: () => _openBottomEditor(
-                          'chest',
-                          'Chest',
-                          'چھاتی',
-                          data['chest'],
-                        ),
+                        onTap: () =>
+                            _openBottomEditor('chest', 'Chest', data['chest']),
                       ),
                     ),
                     Positioned(
@@ -322,14 +251,9 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                       left: width * 0.12,
                       child: MeasurementChip(
                         labelEn: 'Waist',
-                        labelUr: 'کمر',
                         value: data['waist'],
-                        onTap: () => _openBottomEditor(
-                          'waist',
-                          'Waist',
-                          'کمر',
-                          data['waist'],
-                        ),
+                        onTap: () =>
+                            _openBottomEditor('waist', 'Waist', data['waist']),
                       ),
                     ),
                     Positioned(
@@ -337,10 +261,9 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                       right: width * 0.12,
                       child: MeasurementChip(
                         labelEn: 'Hip',
-                        labelUr: 'ہپ',
                         value: data['hip'],
                         onTap: () =>
-                            _openBottomEditor('hip', 'Hip', 'ہپ', data['hip']),
+                            _openBottomEditor('hip', 'Hip', data['hip']),
                       ),
                     ),
                     Positioned(
@@ -348,12 +271,10 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                       left: width * 0.1,
                       child: MeasurementChip(
                         labelEn: 'Length',
-                        labelUr: 'لمبائی',
                         value: data['length'],
                         onTap: () => _openBottomEditor(
                           'length',
                           'Length',
-                          'لمبائی',
                           data['length'],
                         ),
                       ),
@@ -371,13 +292,11 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
 
 class _MeasurementEditorSheet extends StatefulWidget {
   final String labelEn;
-  final String labelUr;
   final String? initialValue;
   final Function(String) onSave;
 
   const _MeasurementEditorSheet({
     required this.labelEn,
-    required this.labelUr,
     this.initialValue,
     required this.onSave,
   });
@@ -445,14 +364,6 @@ class _MeasurementEditorSheetState extends State<_MeasurementEditorSheet> {
                   fontFamily: AppTypography.fontFamily,
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: AppPalette.carbon,
-                ),
-              ),
-              Text(
-                widget.labelUr,
-                style: const TextStyle(
-                  fontFamily: AppTypography.fontFamily,
-                  fontSize: 24,
                   color: AppPalette.carbon,
                 ),
               ),

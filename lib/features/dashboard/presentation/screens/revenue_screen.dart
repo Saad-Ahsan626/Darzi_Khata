@@ -36,10 +36,7 @@ class RevenueScreen extends ConsumerWidget {
           ),
           onPressed: () => context.pop(),
         ),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text(
+        title: const Text(
               'Revenue',
               style: TextStyle(
                 fontFamily: AppTypography.fontFamily,
@@ -47,16 +44,6 @@ class RevenueScreen extends ConsumerWidget {
                 color: AppPalette.white,
               ),
             ),
-            Text(
-              'آمدنی',
-              style: TextStyle(
-                fontFamily: AppTypography.fontFamily,
-                fontSize: 18,
-                color: AppPalette.white,
-              ),
-            ),
-          ],
-        ),
       ),
       body: ordersAsync.when(
         loading: () => const Center(

@@ -46,7 +46,8 @@ app.*.map.json
 /idea
 /.idea
 /macos
-/test
+/test/*
+!/test/presentation_foundation_test.dart
 /linux
 /web
 /windows

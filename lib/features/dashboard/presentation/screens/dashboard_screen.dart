@@ -29,19 +29,6 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ),
         actions: [
-          const Padding(
-            padding: EdgeInsets.only(right: 12.0),
-            child: Center(
-              child: Text(
-                'ٹیلر کھاتہ',
-                style: TextStyle(
-                  color: AppPalette.white,
-                  fontFamily: AppTypography.fontFamily,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-          ),
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: Container(
@@ -240,14 +227,6 @@ class DashboardScreen extends ConsumerWidget {
                         fontFamily: AppTypography.fontFamily,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: AppPalette.carbon,
-                      ),
-                    ),
-                    Text(
-                      'آج کی ڈیلیوری',
-                      style: TextStyle(
-                        fontFamily: AppTypography.fontFamily,
-                        fontSize: 16,
                         color: AppPalette.carbon,
                       ),
                     ),

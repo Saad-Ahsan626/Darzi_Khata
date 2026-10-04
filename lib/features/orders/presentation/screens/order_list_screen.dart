@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:tailor_khata/core/widgets/app_widgets.dart';
 import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/features/orders/presentation/providers/orders_notifier.dart';
 import 'package:tailor_khata/features/orders/presentation/widgets/order_card.dart';
@@ -33,20 +35,11 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 18.0),
-            child: Center(
-              child: Text(
-                'آرڈر',
-                style: TextStyle(
-                  color: AppPalette.white,
-                  fontFamily: AppTypography.fontFamily,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+        actions: [
+          IconButton(
+            tooltip: 'New order',
+            icon: const Icon(Icons.add, color: AppPalette.white),
+            onPressed: () => context.push('/orders/new'),
           ),
         ],
       ),
@@ -105,7 +98,14 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
                 }).toList();
 
                 if (displayOrders.isEmpty) {
-                  return _buildEmptyState();
+                  return Center(
+                    child: AppFeedback(
+                      title: 'No orders here',
+                      message: 'Create an order or choose another filter.',
+                      actionLabel: 'New order',
+                      onAction: () => context.push('/orders/new'),
+                    ),
+                  );
                 }
 
                 return ListView.separated(
@@ -122,38 +122,6 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-          decoration: BoxDecoration(
-            color: AppPalette.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppPalette.lineStrong, width: 1),
-          ),
-          child: const Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.receipt_long, size: 48, color: AppPalette.ink70),
-              SizedBox(height: 16),
-              Text(
-                'No orders here yet — tap + to create your first one.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppPalette.ink70,
-                  fontSize: 15,
-                  fontFamily: AppTypography.fontFamily,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
