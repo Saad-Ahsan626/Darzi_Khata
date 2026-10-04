@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:tailor_khata/core/theme/app_colors.dart';
+import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/features/orders/domain/entities/order.dart';
 import 'package:intl/intl.dart';
 
@@ -26,16 +26,16 @@ class DashboardDeliveryCard extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppPalette.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.fabricGrey),
+          border: Border.all(color: AppPalette.lineStrong),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(14),
           child: Container(
             decoration: const BoxDecoration(
               border: Border(
-                left: BorderSide(color: AppColors.brassTape, width: 4),
+                left: BorderSide(color: AppPalette.carbon, width: 4),
               ),
             ),
             padding: const EdgeInsets.all(16),
@@ -48,9 +48,10 @@ class DashboardDeliveryCard extends StatelessWidget {
                   child: Text(
                     DateFormat('h:mm a').format(order.deliveryDate),
                     style: const TextStyle(
-                      fontFamily: 'Roboto Mono',
+                      fontFamily: AppTypography.fontFamily,
+                      fontFeatures: AppTypography.tabularFigures,
                       fontSize: 13,
-                      color: AppColors.brassTape,
+                      color: AppPalette.carbon,
                     ),
                   ),
                 ),
@@ -64,10 +65,10 @@ class DashboardDeliveryCard extends StatelessWidget {
                       Text(
                         customerName,
                         style: const TextStyle(
-                          fontFamily: 'Noto Sans',
+                          fontFamily: AppTypography.fontFamily,
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.charcoalThread,
+                          color: AppPalette.carbon,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -76,9 +77,9 @@ class DashboardDeliveryCard extends StatelessWidget {
                       Text(
                         order.garmentType,
                         style: const TextStyle(
-                          fontFamily: 'Noto Sans',
+                          fontFamily: AppTypography.fontFamily,
                           fontSize: 13,
-                          color: AppColors.inkMuted,
+                          color: AppPalette.ink70,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -94,10 +95,10 @@ class DashboardDeliveryCard extends StatelessWidget {
                     Text(
                       isPaid ? 'PAID' : 'BALANCE',
                       style: const TextStyle(
-                        fontFamily: 'Noto Sans',
+                        fontFamily: AppTypography.fontFamily,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.inkMuted,
+                        color: AppPalette.ink70,
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -105,10 +106,11 @@ class DashboardDeliveryCard extends StatelessWidget {
                     Text(
                       isPaid ? 'Rs ${order.totalAmount}' : 'Rs $balance',
                       style: TextStyle(
-                        fontFamily: 'Roboto Mono',
+                        fontFamily: AppTypography.fontFamily,
+                        fontFeatures: AppTypography.tabularFigures,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: isPaid ? AppColors.greenOk : AppColors.seamRed,
+                        color: isPaid ? AppPalette.oliveInk : AppPalette.carbon,
                       ),
                     ),
                   ],

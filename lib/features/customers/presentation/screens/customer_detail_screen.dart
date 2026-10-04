@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:tailor_khata/core/theme/app_colors.dart';
+import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/features/customers/presentation/providers/customers_notifier.dart';
 import 'package:tailor_khata/features/customers/presentation/widgets/customer_avatar.dart';
 import 'package:tailor_khata/features/orders/presentation/providers/orders_notifier.dart';
@@ -41,7 +41,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
     return customersAsync.when(
       loading: () => const Scaffold(
         body: Center(
-          child: CircularProgressIndicator(color: AppColors.brassTape),
+          child: CircularProgressIndicator(color: AppPalette.carbon),
         ),
       ),
       error: (e, s) => Scaffold(body: Center(child: Text('Error: $e'))),
@@ -57,33 +57,27 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
         final customer = cList.first;
 
         return Scaffold(
-          backgroundColor: AppColors.tailorChalk,
+          backgroundColor: AppPalette.white,
           appBar: AppBar(
-            backgroundColor: AppColors.charcoalThread,
+            backgroundColor: AppPalette.carbon,
             elevation: 0,
             leading: IconButton(
               icon: const Row(
-                children: [
-                  Icon(Icons.chevron_left, color: AppColors.brassTape),
-                ],
+                children: [Icon(Icons.chevron_left, color: AppPalette.white)],
               ),
               onPressed: () => context.pop(),
             ),
             title: const Text(
               'Customers',
               style: TextStyle(
-                fontFamily: 'Noto Sans',
+                fontFamily: AppTypography.fontFamily,
                 fontSize: 16,
-                color: AppColors.tailorChalk,
+                color: AppPalette.white,
               ),
             ),
             actions: [
               IconButton(
-                icon: const Icon(
-                  Icons.edit,
-                  color: AppColors.brassTape,
-                  size: 20,
-                ),
+                icon: const Icon(Icons.edit, color: AppPalette.white, size: 20),
                 onPressed: () {
                   context.push(
                     '/customers/${customer.id}/edit',
@@ -98,7 +92,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
             children: [
               // Header
               Container(
-                color: AppColors.charcoalThread,
+                color: AppPalette.carbon,
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,9 +114,9 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
                                 child: Text(
                                   customer.name,
                                   style: const TextStyle(
-                                    fontFamily: 'Zilla Slab',
+                                    fontFamily: AppTypography.fontFamily,
                                     fontSize: 20,
-                                    color: AppColors.tailorChalk,
+                                    color: AppPalette.white,
                                     fontWeight: FontWeight.w600,
                                   ),
                                   maxLines: 1,
@@ -136,9 +130,9 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
                                   child: Text(
                                     customer.urduName!,
                                     style: const TextStyle(
-                                      fontFamily: 'Noto Nastaliq Urdu',
+                                      fontFamily: AppTypography.fontFamily,
                                       fontSize: 18,
-                                      color: AppColors.brassTape,
+                                      color: AppPalette.white,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -153,9 +147,10 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
                                 ? customer.phone!
                                 : 'No phone number',
                             style: const TextStyle(
-                              fontFamily: 'Roboto Mono',
+                              fontFamily: AppTypography.fontFamily,
+                              fontFeatures: AppTypography.tabularFigures,
                               fontSize: 14,
-                              color: AppColors.ghost,
+                              color: AppPalette.onCarbonMuted,
                             ),
                           ),
                           if (customer.address != null &&
@@ -166,16 +161,16 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
                                 const Icon(
                                   Icons.diamond,
                                   size: 10,
-                                  color: AppColors.brassTape,
+                                  color: AppPalette.white,
                                 ),
                                 const SizedBox(width: 6),
                                 Expanded(
                                   child: Text(
                                     customer.address!,
                                     style: const TextStyle(
-                                      fontFamily: 'Noto Sans',
+                                      fontFamily: AppTypography.fontFamily,
                                       fontSize: 13,
-                                      color: AppColors.ghost,
+                                      color: AppPalette.onCarbonMuted,
                                     ),
                                   ),
                                 ),
@@ -191,20 +186,20 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
 
               // Tabs
               Container(
-                color: AppColors.tailorChalk,
+                color: AppPalette.white,
                 child: TabBar(
                   controller: _tabController,
-                  indicatorColor: AppColors.brassTape,
+                  indicatorColor: AppPalette.carbon,
                   indicatorWeight: 3,
-                  labelColor: AppColors.charcoalThread,
-                  unselectedLabelColor: AppColors.inkMuted,
+                  labelColor: AppPalette.carbon,
+                  unselectedLabelColor: AppPalette.ink70,
                   labelStyle: const TextStyle(
-                    fontFamily: 'Noto Sans',
+                    fontFamily: AppTypography.fontFamily,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
                   unselectedLabelStyle: const TextStyle(
-                    fontFamily: 'Noto Sans',
+                    fontFamily: AppTypography.fontFamily,
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                   ),
@@ -234,15 +229,17 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
                             child: Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: AppPalette.white,
                                 borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: AppColors.fabricGrey),
+                                border: Border.all(
+                                  color: AppPalette.lineStrong,
+                                ),
                               ),
                               child: const Row(
                                 children: [
                                   Icon(
                                     Icons.straighten,
-                                    color: AppColors.brassTape,
+                                    color: AppPalette.carbon,
                                   ),
                                   SizedBox(width: 12),
                                   Expanded(
@@ -253,19 +250,21 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
                                         Text(
                                           'Open Measurement Sheet',
                                           style: TextStyle(
-                                            fontFamily: 'Noto Sans',
+                                            fontFamily:
+                                                AppTypography.fontFamily,
                                             fontSize: 16,
                                             fontWeight: FontWeight.w600,
-                                            color: AppColors.charcoalThread,
+                                            color: AppPalette.carbon,
                                           ),
                                         ),
                                         SizedBox(height: 4),
                                         Text(
                                           'No measurements yet — tap to add',
                                           style: TextStyle(
-                                            fontFamily: 'Noto Sans',
+                                            fontFamily:
+                                                AppTypography.fontFamily,
                                             fontSize: 13,
-                                            color: AppColors.ghost,
+                                            color: AppPalette.ink70,
                                           ),
                                         ),
                                       ],
@@ -273,7 +272,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
                                   ),
                                   Icon(
                                     Icons.chevron_right,
-                                    color: AppColors.inkMuted,
+                                    color: AppPalette.ink70,
                                   ),
                                 ],
                               ),
@@ -284,7 +283,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
                             width: double.infinity,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.brassTape,
+                                backgroundColor: AppPalette.carbon,
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 16,
                                 ),
@@ -299,10 +298,10 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
                               child: Text(
                                 '+ New Order for ${customer.name}',
                                 style: const TextStyle(
-                                  fontFamily: 'Noto Sans',
+                                  fontFamily: AppTypography.fontFamily,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.white,
+                                  color: AppPalette.white,
                                 ),
                               ),
                             ),
@@ -315,7 +314,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
                     ordersAsync.when(
                       loading: () => const Center(
                         child: CircularProgressIndicator(
-                          color: AppColors.brassTape,
+                          color: AppPalette.carbon,
                         ),
                       ),
                       error: (e, s) =>
@@ -332,7 +331,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
                               padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
                                 border: Border.all(
-                                  color: AppColors.fabricGrey,
+                                  color: AppPalette.lineStrong,
                                   style: BorderStyle.none,
                                 ),
                                 borderRadius: BorderRadius.circular(14),
@@ -341,9 +340,9 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
                                 'No orders yet.',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontFamily: 'Noto Sans',
+                                  fontFamily: AppTypography.fontFamily,
                                   fontSize: 15,
-                                  color: AppColors.ghost,
+                                  color: AppPalette.ink70,
                                 ),
                               ),
                             ),

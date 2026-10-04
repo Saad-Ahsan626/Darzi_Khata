@@ -33,8 +33,8 @@ business rules, asset loading, or runtime design-file parsing.
 - Grey olive is for accents and fills; use carbon or appropriate darker ink for
   readable small text. Text and status labels must communicate meaning as well
   as their visual styling.
-- Inter is declared as a font-family token. Bundling and registering its font
-  assets is part of the later theme integration, not this token-only change.
+- Inter weights 400, 500, 600, and 700 are bundled under `assets/fonts/inter/`
+  and registered in `pubspec.yaml`. Typography does not fetch fonts at runtime.
 - Reference viewport dimensions are for design comparison. Do not force screen
   sizes or block smaller devices. Respect text scaling and safe areas.
 - Glass saturation is a design reference; a Flutter blur filter does not perform
@@ -44,8 +44,11 @@ business rules, asset loading, or runtime design-file parsing.
 
 ## Incremental adoption
 
-The existing `AppColors` and `AppTheme` remain the legacy presentation API until
-theme integration. This change only centralizes the new design values; it does
-not recolor existing screens or change their behavior. New presentation work
-should use the token barrel rather than copy values from `idea/`, which is ignored
-by Git. No runtime dependency on that directory is required.
+`AppTheme.lightTheme` maps these values to Material controls, and feature
+presentation code uses `AppPalette` and `AppTypography`. `AppColors` is a
+deprecated compatibility facade with aliases only; it defines no separate
+palette. Existing layouts remain in place while their full redesign proceeds.
+New presentation work should use the token barrel rather than copy values from
+`idea/`, which is ignored by Git. No runtime dependency on that directory is
+required. Supporting text on light surfaces uses `ink70`; carbon surfaces use
+`onCarbonMuted` instead.

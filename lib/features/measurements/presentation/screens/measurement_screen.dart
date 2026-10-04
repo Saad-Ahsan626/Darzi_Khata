@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_cube/flutter_cube.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
-import 'package:tailor_khata/core/theme/app_colors.dart';
+import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/features/measurements/domain/entities/measurement.dart';
 import 'package:tailor_khata/features/measurements/presentation/providers/measurements_notifier.dart';
 import 'package:tailor_khata/features/measurements/presentation/widgets/measurement_chip.dart';
@@ -120,13 +120,13 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
     final data = measurement?.measurementData ?? {};
 
     return Scaffold(
-      backgroundColor: AppColors.tailorChalk,
+      backgroundColor: AppPalette.white,
       appBar: AppBar(
-        backgroundColor: AppColors.charcoalThread,
+        backgroundColor: AppPalette.carbon,
         elevation: 0,
         leading: IconButton(
           icon: const Row(
-            children: [Icon(Icons.chevron_left, color: AppColors.brassTape)],
+            children: [Icon(Icons.chevron_left, color: AppPalette.white)],
           ),
           onPressed: () => context.pop(),
         ),
@@ -139,17 +139,17 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                 const Text(
                   'Measurements',
                   style: TextStyle(
-                    fontFamily: 'Noto Sans',
+                    fontFamily: AppTypography.fontFamily,
                     fontSize: 12,
-                    color: AppColors.inkMuted,
+                    color: AppPalette.onCarbonMuted,
                   ),
                 ),
                 Text(
                   customerName,
                   style: const TextStyle(
-                    fontFamily: 'Zilla Slab',
+                    fontFamily: AppTypography.fontFamily,
                     fontSize: 20,
-                    color: AppColors.tailorChalk,
+                    color: AppPalette.white,
                   ),
                 ),
               ],
@@ -157,9 +157,9 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
             const Text(
               'ناپ',
               style: TextStyle(
-                fontFamily: 'Noto Nastaliq Urdu',
+                fontFamily: AppTypography.fontFamily,
                 fontSize: 22,
-                color: AppColors.brassTape,
+                color: AppPalette.white,
               ),
             ),
           ],
@@ -169,7 +169,7 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
         children: [
           // Segmented Control (Fit Type)
           Container(
-            color: AppColors.charcoalThread,
+            color: AppPalette.surfaceControl,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
@@ -180,7 +180,7 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
                         color: _fitType == 'Formal Fit'
-                            ? AppColors.brassTape
+                            ? AppPalette.carbon
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -189,9 +189,9 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                         'Formal Fit',
                         style: TextStyle(
                           color: _fitType == 'Formal Fit'
-                              ? Colors.white
-                              : AppColors.inkMuted,
-                          fontFamily: 'Noto Sans',
+                              ? AppPalette.white
+                              : AppPalette.ink70,
+                          fontFamily: AppTypography.fontFamily,
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
                         ),
@@ -206,7 +206,7 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
                         color: _fitType == 'Casual Fit'
-                            ? AppColors.brassTape
+                            ? AppPalette.carbon
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -215,9 +215,9 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                         'Casual Fit',
                         style: TextStyle(
                           color: _fitType == 'Casual Fit'
-                              ? Colors.white
-                              : AppColors.inkMuted,
-                          fontFamily: 'Noto Sans',
+                              ? AppPalette.white
+                              : AppPalette.ink70,
+                          fontFamily: AppTypography.fontFamily,
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
                         ),
@@ -233,8 +233,8 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
           Container(
             height: 60,
             decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(bottom: BorderSide(color: AppColors.fabricGrey)),
+              color: AppPalette.white,
+              border: Border(bottom: BorderSide(color: AppPalette.lineStrong)),
             ),
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
@@ -250,23 +250,19 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: isActive
-                          ? AppColors.charcoalThread
-                          : AppColors.tailorChalk,
+                      color: isActive ? AppPalette.carbon : AppPalette.white,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: isActive
-                            ? AppColors.charcoalThread
-                            : AppColors.fabricGrey,
+                            ? AppPalette.carbon
+                            : AppPalette.lineStrong,
                       ),
                     ),
                     child: Text(
                       garment,
                       style: TextStyle(
-                        color: isActive
-                            ? Colors.white
-                            : AppColors.charcoalThread,
-                        fontFamily: 'Noto Sans',
+                        color: isActive ? AppPalette.white : AppPalette.carbon,
+                        fontFamily: AppTypography.fontFamily,
                         fontWeight: isActive
                             ? FontWeight.w600
                             : FontWeight.w500,
@@ -428,7 +424,7 @@ class _MeasurementEditorSheetState extends State<_MeasurementEditorSheet> {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: AppPalette.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.only(
@@ -446,18 +442,18 @@ class _MeasurementEditorSheetState extends State<_MeasurementEditorSheet> {
               Text(
                 widget.labelEn,
                 style: const TextStyle(
-                  fontFamily: 'Zilla Slab',
+                  fontFamily: AppTypography.fontFamily,
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.charcoalThread,
+                  color: AppPalette.carbon,
                 ),
               ),
               Text(
                 widget.labelUr,
                 style: const TextStyle(
-                  fontFamily: 'Noto Nastaliq Urdu',
+                  fontFamily: AppTypography.fontFamily,
                   fontSize: 24,
-                  color: AppColors.brassTape,
+                  color: AppPalette.carbon,
                 ),
               ),
             ],
@@ -471,7 +467,7 @@ class _MeasurementEditorSheetState extends State<_MeasurementEditorSheet> {
                 icon: const Icon(
                   Icons.remove_circle_outline,
                   size: 48,
-                  color: AppColors.inkMuted,
+                  color: AppPalette.ink70,
                 ),
               ),
               const SizedBox(width: 24),
@@ -479,16 +475,21 @@ class _MeasurementEditorSheetState extends State<_MeasurementEditorSheet> {
                 width: 140,
                 child: TextField(
                   controller: _controller,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^\d{0,2}(\.\d{0,1})?$')),
+                    FilteringTextInputFormatter.allow(
+                      RegExp(r'^\d{0,2}(\.\d{0,1})?$'),
+                    ),
                   ],
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontFamily: 'Roboto Mono',
+                    fontFamily: AppTypography.fontFamily,
+                    fontFeatures: AppTypography.tabularFigures,
                     fontSize: 48,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.charcoalThread,
+                    color: AppPalette.carbon,
                   ),
                   decoration: const InputDecoration(
                     border: InputBorder.none,
@@ -496,10 +497,11 @@ class _MeasurementEditorSheetState extends State<_MeasurementEditorSheet> {
                     contentPadding: EdgeInsets.zero,
                     suffixText: '"',
                     suffixStyle: TextStyle(
-                      fontFamily: 'Roboto Mono',
+                      fontFamily: AppTypography.fontFamily,
+                      fontFeatures: AppTypography.tabularFigures,
                       fontSize: 48,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.charcoalThread,
+                      color: AppPalette.carbon,
                     ),
                   ),
                   onChanged: (val) {
@@ -518,7 +520,7 @@ class _MeasurementEditorSheetState extends State<_MeasurementEditorSheet> {
                 icon: const Icon(
                   Icons.add_circle_outline,
                   size: 48,
-                  color: AppColors.brassTape,
+                  color: AppPalette.carbon,
                 ),
               ),
             ],
@@ -533,7 +535,7 @@ class _MeasurementEditorSheetState extends State<_MeasurementEditorSheet> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
-                      side: const BorderSide(color: AppColors.fabricGrey),
+                      side: const BorderSide(color: AppPalette.lineStrong),
                     ),
                     elevation: 0,
                   ),
@@ -543,10 +545,10 @@ class _MeasurementEditorSheetState extends State<_MeasurementEditorSheet> {
                   child: const Text(
                     'Clear',
                     style: TextStyle(
-                      fontFamily: 'Noto Sans',
+                      fontFamily: AppTypography.fontFamily,
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.charcoalThread,
+                      color: AppPalette.carbon,
                     ),
                   ),
                 ),
@@ -555,7 +557,7 @@ class _MeasurementEditorSheetState extends State<_MeasurementEditorSheet> {
               Expanded(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.brassTape,
+                    backgroundColor: AppPalette.carbon,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -568,10 +570,10 @@ class _MeasurementEditorSheetState extends State<_MeasurementEditorSheet> {
                   child: const Text(
                     'Done',
                     style: TextStyle(
-                      fontFamily: 'Noto Sans',
+                      fontFamily: AppTypography.fontFamily,
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: AppPalette.white,
                     ),
                   ),
                 ),

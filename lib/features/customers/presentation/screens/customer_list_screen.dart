@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tailor_khata/core/theme/app_colors.dart';
+import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/features/customers/presentation/providers/customers_notifier.dart';
 import 'package:tailor_khata/features/customers/presentation/widgets/customer_card.dart';
 
@@ -26,9 +26,9 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
     final customersAsync = ref.watch(customersNotifierProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.tailorChalk,
+      backgroundColor: AppPalette.white,
       appBar: AppBar(
-        backgroundColor: AppColors.charcoalThread,
+        backgroundColor: AppPalette.carbon,
         elevation: 0,
         title: const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -36,17 +36,17 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
             Text(
               'Customers',
               style: TextStyle(
-                fontFamily: 'Zilla Slab',
+                fontFamily: AppTypography.fontFamily,
                 fontSize: 22,
-                color: AppColors.tailorChalk,
+                color: AppPalette.white,
               ),
             ),
             Text(
               'گاہک',
               style: TextStyle(
-                fontFamily: 'Noto Nastaliq Urdu',
+                fontFamily: AppTypography.fontFamily,
                 fontSize: 18,
-                color: AppColors.brassTape,
+                color: AppPalette.white,
               ),
             ),
           ],
@@ -63,19 +63,19 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
                 });
               },
               style: const TextStyle(
-                fontFamily: 'Noto Sans',
+                fontFamily: AppTypography.fontFamily,
                 fontSize: 15,
-                color: AppColors.charcoalThread,
+                color: AppPalette.carbon,
               ),
               decoration: InputDecoration(
                 hintText: 'Search name or phone...',
                 hintStyle: const TextStyle(
-                  color: AppColors.inkMuted,
-                  fontFamily: 'Noto Sans',
+                  color: AppPalette.ink70,
+                  fontFamily: AppTypography.fontFamily,
                 ),
-                prefixIcon: const Icon(Icons.search, color: AppColors.inkMuted),
+                prefixIcon: const Icon(Icons.search, color: AppPalette.ink70),
                 filled: true,
-                fillColor: AppColors.tailorChalk,
+                fillColor: AppPalette.white,
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
@@ -88,12 +88,12 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
       ),
       body: customersAsync.when(
         loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.brassTape),
+          child: CircularProgressIndicator(color: AppPalette.carbon),
         ),
         error: (err, stack) => Center(
           child: Text(
             'Error: $err',
-            style: const TextStyle(color: AppColors.seamRed),
+            style: const TextStyle(color: AppPalette.carbon),
           ),
         ),
         data: (customers) {
@@ -116,7 +116,7 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: AppColors.fabricGrey,
+                    color: AppPalette.lineStrong,
                     style: BorderStyle.none,
                   ),
                   borderRadius: BorderRadius.circular(14),
@@ -125,9 +125,9 @@ class _CustomerListScreenState extends ConsumerState<CustomerListScreen> {
                   'No customers here yet — tap + to create your first one.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontFamily: 'Noto Sans',
+                    fontFamily: AppTypography.fontFamily,
                     fontSize: 15,
-                    color: AppColors.ghost,
+                    color: AppPalette.ink70,
                   ),
                 ),
               ),

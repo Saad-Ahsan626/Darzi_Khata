@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:tailor_khata/core/theme/app_colors.dart';
+import 'package:tailor_khata/core/theme/design_tokens.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -8,7 +8,7 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.tailorChalk, // The off-white background
+      backgroundColor: AppPalette.white, // The off-white background
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -20,11 +20,11 @@ class WelcomeScreen extends StatelessWidget {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppPalette.white,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withAlpha(13), // ~0.05 * 255
+                    color: AppPalette.carbon.withAlpha(13), // ~0.05 * 255
                     blurRadius: 10,
                     spreadRadius: 2,
                   ),
@@ -34,7 +34,7 @@ class WelcomeScreen extends StatelessWidget {
                 child: Icon(
                   Icons.content_cut_rounded,
                   size: 48,
-                  color: AppColors.brassTape,
+                  color: AppPalette.carbon,
                 ),
               ),
             ),
@@ -44,10 +44,10 @@ class WelcomeScreen extends StatelessWidget {
             const Text(
               'Tailor Khata',
               style: TextStyle(
-                fontFamily: 'Zilla Slab',
+                fontFamily: AppTypography.fontFamily,
                 fontSize: 28,
                 fontWeight: FontWeight.w700,
-                color: AppColors.charcoalThread,
+                color: AppPalette.carbon,
               ),
             ),
             const SizedBox(height: 8),
@@ -56,9 +56,9 @@ class WelcomeScreen extends StatelessWidget {
             const Text(
               'ٹیلر کھاتہ',
               style: TextStyle(
-                fontFamily: 'Noto Nastaliq Urdu',
+                fontFamily: AppTypography.fontFamily,
                 fontSize: 22,
-                color: AppColors.brassTape,
+                color: AppPalette.carbon,
               ),
             ),
             const SizedBox(height: 4),
@@ -67,9 +67,9 @@ class WelcomeScreen extends StatelessWidget {
             const Text(
               'Simple & Easy To Use',
               style: TextStyle(
-                fontFamily: 'Noto Sans',
+                fontFamily: AppTypography.fontFamily,
                 fontSize: 14,
-                color: AppColors.inkMuted,
+                color: AppPalette.ink70,
                 letterSpacing: 0.5,
               ),
             ),
@@ -81,17 +81,17 @@ class WelcomeScreen extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppPalette.white,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withAlpha(8), // ~0.03 * 255
+                      color: AppPalette.carbon.withAlpha(8), // ~0.03 * 255
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
                   ],
                   border: Border.all(
-                    color: AppColors.fabricGrey.withAlpha(128),
+                    color: AppPalette.lineStrong.withAlpha(128),
                   ),
                 ),
                 child: Column(
@@ -100,7 +100,7 @@ class WelcomeScreen extends StatelessWidget {
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.brassTape,
+                          backgroundColor: AppPalette.carbon,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -110,16 +110,16 @@ class WelcomeScreen extends StatelessWidget {
                         onPressed: () => context.go('/login'),
                         icon: const Icon(
                           Icons.login,
-                          color: Colors.white,
+                          color: AppPalette.white,
                           size: 20,
                         ),
                         label: const Text(
                           'Login',
                           style: TextStyle(
-                            fontFamily: 'Noto Sans',
+                            fontFamily: AppTypography.fontFamily,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: AppPalette.white,
                           ),
                         ),
                       ),
@@ -129,7 +129,7 @@ class WelcomeScreen extends StatelessWidget {
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.stitchNavy,
+                          backgroundColor: AppPalette.carbon,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -139,16 +139,16 @@ class WelcomeScreen extends StatelessWidget {
                         onPressed: () => context.go('/home'),
                         icon: const Icon(
                           Icons.person_outline,
-                          color: Colors.white,
+                          color: AppPalette.white,
                           size: 20,
                         ),
                         label: const Text(
                           'Continue as Guest',
                           style: TextStyle(
-                            fontFamily: 'Noto Sans',
+                            fontFamily: AppTypography.fontFamily,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: AppPalette.white,
                           ),
                         ),
                       ),
@@ -164,11 +164,12 @@ class WelcomeScreen extends StatelessWidget {
             Text(
               'TAILOR KHATA V1.0.0',
               style: TextStyle(
-                fontFamily: 'Roboto Mono',
+                fontFamily: AppTypography.fontFamily,
+                fontFeatures: AppTypography.tabularFigures,
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 2,
-                color: AppColors.inkMuted,
+                color: AppPalette.ink70,
               ),
             ),
             const SizedBox(height: 24),

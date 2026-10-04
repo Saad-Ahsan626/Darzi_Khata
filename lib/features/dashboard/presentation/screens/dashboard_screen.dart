@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tailor_khata/core/theme/app_colors.dart';
+import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/features/orders/presentation/providers/orders_notifier.dart';
 import 'package:tailor_khata/features/customers/presentation/providers/customers_notifier.dart';
 import 'package:tailor_khata/features/dashboard/presentation/widgets/dashboard_delivery_card.dart';
@@ -15,15 +15,15 @@ class DashboardScreen extends ConsumerWidget {
     final customersAsync = ref.watch(customersNotifierProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.tailorChalk,
+      backgroundColor: AppPalette.white,
       appBar: AppBar(
-        backgroundColor: AppColors.charcoalThread,
+        backgroundColor: AppPalette.carbon,
         elevation: 0,
         title: const Text(
           'Tailor Khata',
           style: TextStyle(
-            color: AppColors.tailorChalk,
-            fontFamily: 'Zilla Slab',
+            color: AppPalette.white,
+            fontFamily: AppTypography.fontFamily,
             fontSize: 22,
             fontWeight: FontWeight.w600,
           ),
@@ -35,8 +35,8 @@ class DashboardScreen extends ConsumerWidget {
               child: Text(
                 'ٹیلر کھاتہ',
                 style: TextStyle(
-                  color: AppColors.brassTape,
-                  fontFamily: 'Noto Nastaliq Urdu',
+                  color: AppPalette.white,
+                  fontFamily: AppTypography.fontFamily,
                   fontSize: 16,
                 ),
               ),
@@ -48,15 +48,15 @@ class DashboardScreen extends ConsumerWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: AppColors.brassTape,
+                color: AppPalette.white,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Center(
                 child: Text(
                   'TK',
                   style: TextStyle(
-                    color: Colors.white,
-                    fontFamily: 'Zilla Slab',
+                    color: AppPalette.carbon,
+                    fontFamily: AppTypography.fontFamily,
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
                   ),
@@ -67,17 +67,21 @@ class DashboardScreen extends ConsumerWidget {
         ],
       ),
       body: ordersAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.brassTape)),
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppPalette.carbon),
+        ),
         error: (e, s) => Center(child: Text('Error: $e')),
         data: (orders) {
           final now = DateTime.now();
           final today = DateTime(now.year, now.month, now.day);
-          
+
           // "This Month" revenue based on actual cash collected for orders created this month
           double monthRevenue = 0;
           for (var order in orders) {
             final advance = order.advancePaid;
-            if (advance > 0 && order.createdAt.year == now.year && order.createdAt.month == now.month) {
+            if (advance > 0 &&
+                order.createdAt.year == now.year &&
+                order.createdAt.month == now.month) {
               monthRevenue += advance;
             }
           }
@@ -95,7 +99,11 @@ class DashboardScreen extends ConsumerWidget {
 
           // "Today's Deliveries"
           final todaysDeliveries = orders.where((order) {
-            final dDate = DateTime(order.deliveryDate.year, order.deliveryDate.month, order.deliveryDate.day);
+            final dDate = DateTime(
+              order.deliveryDate.year,
+              order.deliveryDate.month,
+              order.deliveryDate.day,
+            );
             return dDate.isAtSameMomentAs(today);
           }).toList();
 
@@ -115,7 +123,7 @@ class DashboardScreen extends ConsumerWidget {
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: AppColors.stitchNavy,
+                            color: AppPalette.carbon,
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: Column(
@@ -124,10 +132,10 @@ class DashboardScreen extends ConsumerWidget {
                               const Text(
                                 'THIS MONTH',
                                 style: TextStyle(
-                                  fontFamily: 'Noto Sans',
+                                  fontFamily: AppTypography.fontFamily,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
-                                  color: AppColors.ghost,
+                                  color: AppPalette.onCarbonMuted,
                                   letterSpacing: 0.5,
                                 ),
                               ),
@@ -135,10 +143,11 @@ class DashboardScreen extends ConsumerWidget {
                               Text(
                                 'Rs ${monthRevenue.toStringAsFixed(0)}',
                                 style: const TextStyle(
-                                  fontFamily: 'Roboto Mono',
+                                  fontFamily: AppTypography.fontFamily,
+                                  fontFeatures: AppTypography.tabularFigures,
                                   fontSize: 24,
                                   fontWeight: FontWeight.w700,
-                                  color: AppColors.tailorChalk,
+                                  color: AppPalette.white,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -149,14 +158,18 @@ class DashboardScreen extends ConsumerWidget {
                                   Text(
                                     'View all',
                                     style: TextStyle(
-                                      fontFamily: 'Noto Sans',
+                                      fontFamily: AppTypography.fontFamily,
                                       fontSize: 13,
-                                      color: AppColors.brassTape,
+                                      color: AppPalette.white,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                   SizedBox(width: 4),
-                                  Icon(Icons.arrow_forward_ios, color: AppColors.brassTape, size: 10),
+                                  Icon(
+                                    Icons.arrow_forward_ios,
+                                    color: AppPalette.white,
+                                    size: 10,
+                                  ),
                                 ],
                               ),
                             ],
@@ -169,9 +182,9 @@ class DashboardScreen extends ConsumerWidget {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppPalette.white,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.fabricGrey),
+                          border: Border.all(color: AppPalette.lineStrong),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,10 +192,10 @@ class DashboardScreen extends ConsumerWidget {
                             const Text(
                               'PENDING PAYMENTS',
                               style: TextStyle(
-                                fontFamily: 'Noto Sans',
+                                fontFamily: AppTypography.fontFamily,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.inkMuted,
+                                color: AppPalette.ink70,
                                 letterSpacing: 0.5,
                               ),
                               maxLines: 1,
@@ -191,10 +204,11 @@ class DashboardScreen extends ConsumerWidget {
                             Text(
                               'Rs $pendingTotal',
                               style: const TextStyle(
-                                fontFamily: 'Roboto Mono',
+                                fontFamily: AppTypography.fontFamily,
+                                fontFeatures: AppTypography.tabularFigures,
                                 fontSize: 24,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.seamRed,
+                                color: AppPalette.carbon,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -203,9 +217,9 @@ class DashboardScreen extends ConsumerWidget {
                             Text(
                               'across ${pendingCustomers.length} customers',
                               style: const TextStyle(
-                                fontFamily: 'Noto Sans',
+                                fontFamily: AppTypography.fontFamily,
                                 fontSize: 13,
-                                color: AppColors.inkMuted,
+                                color: AppPalette.ink70,
                               ),
                             ),
                           ],
@@ -223,18 +237,18 @@ class DashboardScreen extends ConsumerWidget {
                     Text(
                       'Today\'s Deliveries',
                       style: TextStyle(
-                        fontFamily: 'Zilla Slab',
+                        fontFamily: AppTypography.fontFamily,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.charcoalThread,
+                        color: AppPalette.carbon,
                       ),
                     ),
                     Text(
                       'آج کی ڈیلیوری',
                       style: TextStyle(
-                        fontFamily: 'Noto Nastaliq Urdu',
+                        fontFamily: AppTypography.fontFamily,
                         fontSize: 16,
-                        color: AppColors.charcoalThread,
+                        color: AppPalette.carbon,
                       ),
                     ),
                   ],
@@ -251,27 +265,31 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                     child: Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.fabricGrey),
-                        borderRadius: BorderRadius.circular(14)
+                        border: Border.all(color: AppPalette.lineStrong),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                       padding: const EdgeInsets.all(24),
                       child: const Text(
                         'No deliveries today — a calm day at the counter.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: AppColors.ghost,
+                          color: AppPalette.ink70,
                           fontSize: 15,
-                          fontFamily: 'Noto Sans',
+                          fontFamily: AppTypography.fontFamily,
                         ),
                       ),
-                    )
+                    ),
                   )
                 else
                   ...todaysDeliveries.map((order) {
                     final customers = customersAsync.value ?? [];
-                    final customerList = customers.where((c) => c.id == order.customerId).toList();
-                    final customerName = customerList.isNotEmpty ? customerList.first.name : 'Unknown Customer';
-                    
+                    final customerList = customers
+                        .where((c) => c.id == order.customerId)
+                        .toList();
+                    final customerName = customerList.isNotEmpty
+                        ? customerList.first.name
+                        : 'Unknown Customer';
+
                     return DashboardDeliveryCard(
                       order: order,
                       customerName: customerName,

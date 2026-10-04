@@ -16,15 +16,18 @@ abstract final class AppPalette {
   static const surfaceSunken = Color(0xFFF6F6F3);
   static const surfaceControl = Color(0xFFF0F0ED);
 
-  static final ink70 = carbon.withValues(alpha: 0.70);
-  static final ink55 = carbon.withValues(alpha: 0.55);
-  static final ink45 = carbon.withValues(alpha: 0.45);
-  static final line = carbon.withValues(alpha: 0.10);
-  static final lineStrong = carbon.withValues(alpha: 0.18);
-  static final oliveFill10 = greyOlive.withValues(alpha: 0.10);
-  static final oliveFill14 = greyOlive.withValues(alpha: 0.14);
-  static final oliveBorder = greyOlive.withValues(alpha: 0.34);
-  static final glassLight = white.withValues(alpha: 0.72);
-  static final glassOnCarbon = white.withValues(alpha: 0.10);
-  static final glassBorder = white.withValues(alpha: 0.18);
+  static const ink70 = Color.fromRGBO(23, 25, 24, 0.70);
+  static const ink55 = Color.fromRGBO(23, 25, 24, 0.55);
+  static const ink45 = Color.fromRGBO(23, 25, 24, 0.45);
+  static const line = Color.fromRGBO(23, 25, 24, 0.10);
+  static const lineStrong = Color.fromRGBO(23, 25, 24, 0.18);
+  static const oliveFill10 = Color.fromRGBO(124, 128, 112, 0.10);
+  static const oliveFill14 = Color.fromRGBO(124, 128, 112, 0.14);
+  static const oliveBorder = Color.fromRGBO(124, 128, 112, 0.34);
+  static const glassLight = Color.fromRGBO(255, 255, 255, 0.72);
+  static const glassOnCarbon = Color.fromRGBO(255, 255, 255, 0.10);
+  static const glassBorder = Color.fromRGBO(255, 255, 255, 0.18);
+
+  /// Supporting text on carbon surfaces; ink70 is for light surfaces.
+  static const onCarbonMuted = Color.fromRGBO(255, 255, 255, 0.70);
 }

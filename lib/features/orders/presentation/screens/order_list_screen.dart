@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tailor_khata/core/theme/app_colors.dart';
+import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/features/orders/presentation/providers/orders_notifier.dart';
 import 'package:tailor_khata/features/orders/presentation/widgets/order_card.dart';
 import 'package:tailor_khata/features/orders/presentation/widgets/order_filter_tabs.dart';
@@ -20,15 +20,15 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
     final ordersAsync = ref.watch(ordersNotifierProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.tailorChalk,
+      backgroundColor: AppPalette.white,
       appBar: AppBar(
-        backgroundColor: AppColors.charcoalThread,
+        backgroundColor: AppPalette.carbon,
         elevation: 0,
         title: const Text(
           'Orders',
           style: TextStyle(
-            color: AppColors.tailorChalk,
-            fontFamily: 'Zilla Slab',
+            color: AppPalette.white,
+            fontFamily: AppTypography.fontFamily,
             fontSize: 21,
             fontWeight: FontWeight.w600,
           ),
@@ -40,8 +40,8 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
               child: Text(
                 'آرڈر',
                 style: TextStyle(
-                  color: AppColors.brassTape,
-                  fontFamily: 'Noto Nastaliq Urdu',
+                  color: AppPalette.white,
+                  fontFamily: AppTypography.fontFamily,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -63,7 +63,7 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
           Expanded(
             child: ordersAsync.when(
               loading: () => const Center(
-                child: CircularProgressIndicator(color: AppColors.brassTape),
+                child: CircularProgressIndicator(color: AppPalette.carbon),
               ),
               error: (err, stack) => Center(
                 child: Padding(
@@ -71,26 +71,33 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
                   child: Text(
                     'Could not load orders.\n${err.toString()}',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppColors.seamRed),
+                    style: const TextStyle(color: AppPalette.carbon),
                   ),
                 ),
               ),
               data: (orders) {
                 final now = DateTime.now();
                 final today = DateTime(now.year, now.month, now.day);
-                
+
                 final displayOrders = orders.where((order) {
-                  final orderDate = DateTime(order.deliveryDate.year, order.deliveryDate.month, order.deliveryDate.day);
-                  
+                  final orderDate = DateTime(
+                    order.deliveryDate.year,
+                    order.deliveryDate.month,
+                    order.deliveryDate.day,
+                  );
+
                   switch (_selectedFilterIndex) {
                     case 1: // Today
                       return orderDate.isAtSameMomentAs(today);
                     case 2: // This Week
                       final weekFromNow = today.add(const Duration(days: 7));
-                      return (orderDate.isAtSameMomentAs(today) || orderDate.isAfter(today)) && 
-                             (orderDate.isBefore(weekFromNow) || orderDate.isAtSameMomentAs(weekFromNow));
+                      return (orderDate.isAtSameMomentAs(today) ||
+                              orderDate.isAfter(today)) &&
+                          (orderDate.isBefore(weekFromNow) ||
+                              orderDate.isAtSameMomentAs(weekFromNow));
                     case 3: // Overdue
-                      return orderDate.isBefore(today) && order.status != 'Delivered';
+                      return orderDate.isBefore(today) &&
+                          order.status != 'Delivered';
                     case 0: // All
                     default:
                       return true;
@@ -126,22 +133,22 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppPalette.white,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.fabricGrey, width: 1),
+            border: Border.all(color: AppPalette.lineStrong, width: 1),
           ),
           child: const Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.receipt_long, size: 48, color: AppColors.ghost),
+              Icon(Icons.receipt_long, size: 48, color: AppPalette.ink70),
               SizedBox(height: 16),
               Text(
                 'No orders here yet — tap + to create your first one.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: AppColors.ghost,
+                  color: AppPalette.ink70,
                   fontSize: 15,
-                  fontFamily: 'Noto Sans',
+                  fontFamily: AppTypography.fontFamily,
                 ),
               ),
             ],

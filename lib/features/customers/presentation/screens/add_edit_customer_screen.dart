@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
-import 'package:tailor_khata/core/theme/app_colors.dart';
+import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/features/customers/domain/entities/customer.dart';
 import 'package:tailor_khata/features/customers/presentation/providers/customers_notifier.dart';
 
@@ -32,7 +32,7 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     // Add listeners to rebuild UI and hide hints when typing
     _nameController.addListener(() => setState(() {}));
     _urduNameController.addListener(() => setState(() {}));
@@ -95,27 +95,31 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
     return fileName;
   }
 
-  InputDecoration _inputDecoration(String hintText, TextEditingController controller, {bool? hideHintOverride}) {
+  InputDecoration _inputDecoration(
+    String hintText,
+    TextEditingController controller, {
+    bool? hideHintOverride,
+  }) {
     final bool hideHint = hideHintOverride ?? controller.text.isNotEmpty;
     return InputDecoration(
       hintText: hideHint ? '' : hintText,
       hintStyle: const TextStyle(
-        color: AppColors.inkMuted,
-        fontFamily: 'Noto Sans',
+        color: AppPalette.ink70,
+        fontFamily: AppTypography.fontFamily,
       ),
       filled: true,
-      fillColor: Colors.white,
+      fillColor: AppPalette.white,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.fabricGrey),
+        borderSide: const BorderSide(color: AppPalette.lineStrong),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.fabricGrey),
+        borderSide: const BorderSide(color: AppPalette.lineStrong),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.brassTape, width: 2),
+        borderSide: const BorderSide(color: AppPalette.carbon, width: 2),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
@@ -127,9 +131,9 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
       child: Text(
         text,
         style: const TextStyle(
-          color: AppColors.inkMuted,
+          color: AppPalette.ink70,
           fontSize: 11,
-          fontFamily: 'Noto Sans',
+          fontFamily: AppTypography.fontFamily,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.5,
         ),
@@ -142,13 +146,13 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
     final isEditing = widget.existingCustomer != null;
 
     return Scaffold(
-      backgroundColor: AppColors.tailorChalk,
+      backgroundColor: AppPalette.white,
       appBar: AppBar(
-        backgroundColor: AppColors.charcoalThread,
+        backgroundColor: AppPalette.carbon,
         elevation: 0,
         leading: IconButton(
           icon: const Row(
-            children: [Icon(Icons.chevron_left, color: AppColors.brassTape)],
+            children: [Icon(Icons.chevron_left, color: AppPalette.white)],
           ),
           onPressed: () => context.pop(),
         ),
@@ -158,17 +162,17 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
             Text(
               isEditing ? 'Edit Customer' : 'New Customer',
               style: const TextStyle(
-                fontFamily: 'Zilla Slab',
+                fontFamily: AppTypography.fontFamily,
                 fontSize: 22,
-                color: AppColors.tailorChalk,
+                color: AppPalette.white,
               ),
             ),
             Text(
               isEditing ? 'ترمیم' : 'نیا گاہک',
               style: const TextStyle(
-                fontFamily: 'Noto Nastaliq Urdu',
+                fontFamily: AppTypography.fontFamily,
                 fontSize: 18,
-                color: AppColors.brassTape,
+                color: AppPalette.white,
               ),
             ),
           ],
@@ -181,180 +185,205 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-            // Photo Picker
-            Center(
-              child: GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  width: 96,
-                  height: 96,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: AppColors.fabricGrey, width: 1.5),
-                    image: _selectedImage != null
-                        ? DecorationImage(
-                            image: FileImage(_selectedImage!),
-                            fit: BoxFit.cover,
+              // Photo Picker
+              Center(
+                child: GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    width: 96,
+                    height: 96,
+                    decoration: BoxDecoration(
+                      color: AppPalette.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: AppPalette.lineStrong,
+                        width: 1.5,
+                      ),
+                      image: _selectedImage != null
+                          ? DecorationImage(
+                              image: FileImage(_selectedImage!),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                    ),
+                    child: _selectedImage == null
+                        ? const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.add_a_photo,
+                                color: AppPalette.ink70,
+                                size: 28,
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                'Add Photo',
+                                style: TextStyle(
+                                  color: AppPalette.ink70,
+                                  fontSize: 10,
+                                  fontFamily: AppTypography.fontFamily,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           )
                         : null,
                   ),
-                  child: _selectedImage == null
-                      ? const Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.add_a_photo,
-                              color: AppColors.inkMuted,
-                              size: 28,
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              'Add Photo',
-                              style: TextStyle(
-                                color: AppColors.inkMuted,
-                                fontSize: 10,
-                                fontFamily: 'Noto Sans',
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        )
-                      : null,
                 ),
               ),
-            ),
-            const SizedBox(height: 32),
+              const SizedBox(height: 32),
 
-            _buildLabel('ENGLISH NAME'),
-            TextFormField(
-              controller: _nameController,
-              style: const TextStyle(fontFamily: 'Noto Sans', fontSize: 16),
-              decoration: _inputDecoration(
-                'e.g. Ali Khan', 
-                _nameController,
-                hideHintOverride: _nameController.text.isNotEmpty || _urduNameController.text.isNotEmpty,
-              ),
-              textCapitalization: TextCapitalization.words,
-              validator: (val) {
-                if (val == null || val.trim().isEmpty) return 'Name is required';
-                if (val.length > 50) return 'Name is too long';
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-
-            _buildLabel('URDU NAME / اردو نام'),
-            TextFormField(
-              controller: _urduNameController,
-              textAlign: TextAlign.right,
-              textDirection: TextDirection.rtl,
-              style: const TextStyle(
-                fontFamily: 'Noto Nastaliq Urdu',
-                fontSize: 16,
-              ),
-              decoration: _inputDecoration(
-                'علی خان', 
-                _urduNameController,
-                hideHintOverride: _nameController.text.isNotEmpty || _urduNameController.text.isNotEmpty,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            _buildLabel('PHONE NUMBER'),
-            TextFormField(
-              controller: _phoneController,
-              keyboardType: TextInputType.phone,
-              style: const TextStyle(fontFamily: 'Roboto Mono', fontSize: 16),
-              decoration: _inputDecoration('e.g. 0300 1234567', _phoneController),
-              validator: (val) {
-                if (val == null || val.trim().isEmpty) return null;
-                final clean = val.replaceAll(RegExp(r'[-\s]'), '');
-                if (!RegExp(r'^(?:\+92|0)[0-9]{9,10}$').hasMatch(clean)) {
-                  return 'Invalid Pakistani phone number';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
-
-            _buildLabel('ADDRESS (OPTIONAL)'),
-            TextFormField(
-              controller: _addressController,
-              style: const TextStyle(fontFamily: 'Noto Sans', fontSize: 16),
-              decoration: _inputDecoration('e.g. Shop 12, Main Market', _addressController),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 32),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.brassTape,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 0,
+              _buildLabel('ENGLISH NAME'),
+              TextFormField(
+                controller: _nameController,
+                style: const TextStyle(
+                  fontFamily: AppTypography.fontFamily,
+                  fontSize: 16,
                 ),
-                onPressed: () async {
-                  if (!_formKey.currentState!.validate()) return;
-                  
-                  final name = _nameController.text.trim();
-
-                  final imagePath = await _saveImageLocally();
-
-                  final customer = Customer(
-                    id: isEditing
-                        ? widget.existingCustomer!.id
-                        : const Uuid().v4(),
-                    name: name,
-                    urduName: _urduNameController.text.trim(),
-                    phone: _phoneController.text.trim(),
-                    address: _addressController.text.trim(),
-                    imagePath: imagePath,
-                    createdAt: isEditing
-                        ? widget.existingCustomer!.createdAt
-                        : DateTime.now(),
-                  );
-
-                  if (isEditing) {
-                    ref
-                        .read(customersNotifierProvider.notifier)
-                        .updateCustomer(customer);
-                  } else {
-                    ref
-                        .read(customersNotifierProvider.notifier)
-                        .addCustomer(customer);
+                decoration: _inputDecoration(
+                  'e.g. Ali Khan',
+                  _nameController,
+                  hideHintOverride:
+                      _nameController.text.isNotEmpty ||
+                      _urduNameController.text.isNotEmpty,
+                ),
+                textCapitalization: TextCapitalization.words,
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) {
+                    return 'Name is required';
                   }
-
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          isEditing ? 'Customer updated' : 'Customer saved',
-                        ),
-                        behavior: SnackBarBehavior.floating,
-                        backgroundColor: AppColors.charcoalThread,
-                      ),
-                    );
-                    context.pop();
-                  }
+                  if (val.length > 50) return 'Name is too long';
+                  return null;
                 },
-                child: Text(
-                  isEditing ? 'Save Changes' : 'Save Customer',
-                  style: const TextStyle(
-                    fontFamily: 'Noto Sans',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+              ),
+              const SizedBox(height: 16),
+
+              _buildLabel('URDU NAME / اردو نام'),
+              TextFormField(
+                controller: _urduNameController,
+                textAlign: TextAlign.right,
+                textDirection: TextDirection.rtl,
+                style: const TextStyle(
+                  fontFamily: AppTypography.fontFamily,
+                  fontSize: 16,
+                ),
+                decoration: _inputDecoration(
+                  'علی خان',
+                  _urduNameController,
+                  hideHintOverride:
+                      _nameController.text.isNotEmpty ||
+                      _urduNameController.text.isNotEmpty,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              _buildLabel('PHONE NUMBER'),
+              TextFormField(
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
+                style: const TextStyle(
+                  fontFamily: AppTypography.fontFamily,
+                  fontFeatures: AppTypography.tabularFigures,
+                  fontSize: 16,
+                ),
+                decoration: _inputDecoration(
+                  'e.g. 0300 1234567',
+                  _phoneController,
+                ),
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) return null;
+                  final clean = val.replaceAll(RegExp(r'[-\s]'), '');
+                  if (!RegExp(r'^(?:\+92|0)[0-9]{9,10}$').hasMatch(clean)) {
+                    return 'Invalid Pakistani phone number';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+
+              _buildLabel('ADDRESS (OPTIONAL)'),
+              TextFormField(
+                controller: _addressController,
+                style: const TextStyle(
+                  fontFamily: AppTypography.fontFamily,
+                  fontSize: 16,
+                ),
+                decoration: _inputDecoration(
+                  'e.g. Shop 12, Main Market',
+                  _addressController,
+                ),
+                maxLines: 2,
+              ),
+              const SizedBox(height: 32),
+
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppPalette.carbon,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  onPressed: () async {
+                    if (!_formKey.currentState!.validate()) return;
+
+                    final name = _nameController.text.trim();
+
+                    final imagePath = await _saveImageLocally();
+
+                    final customer = Customer(
+                      id: isEditing
+                          ? widget.existingCustomer!.id
+                          : const Uuid().v4(),
+                      name: name,
+                      urduName: _urduNameController.text.trim(),
+                      phone: _phoneController.text.trim(),
+                      address: _addressController.text.trim(),
+                      imagePath: imagePath,
+                      createdAt: isEditing
+                          ? widget.existingCustomer!.createdAt
+                          : DateTime.now(),
+                    );
+
+                    if (isEditing) {
+                      ref
+                          .read(customersNotifierProvider.notifier)
+                          .updateCustomer(customer);
+                    } else {
+                      ref
+                          .read(customersNotifierProvider.notifier)
+                          .addCustomer(customer);
+                    }
+
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            isEditing ? 'Customer updated' : 'Customer saved',
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: AppPalette.carbon,
+                        ),
+                      );
+                      context.pop();
+                    }
+                  },
+                  child: Text(
+                    isEditing ? 'Save Changes' : 'Save Customer',
+                    style: const TextStyle(
+                      fontFamily: AppTypography.fontFamily,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppPalette.white,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
         ),
       ),
     );

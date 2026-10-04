@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:tailor_khata/core/theme/app_colors.dart';
+import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/features/customers/domain/entities/customer.dart';
 
 class CustomerAvatar extends StatelessWidget {
@@ -21,10 +21,10 @@ class CustomerAvatar extends StatelessWidget {
   Color _getAvatarColor(String id) {
     // Generate a consistent color based on the customer ID
     final colors = [
-      AppColors.stitchNavy,
-      AppColors.brassTape,
-      AppColors.seamRed,
-      AppColors.inkSoft,
+      AppPalette.carbon,
+      AppPalette.carbon,
+      AppPalette.carbon,
+      AppPalette.ink70,
     ];
     final int hash = id.hashCode;
     return colors[hash % colors.length];
@@ -92,8 +92,8 @@ class CustomerAvatar extends StatelessWidget {
       child: Text(
         _getInitial(),
         style: TextStyle(
-          color: Colors.white,
-          fontFamily: 'Zilla Slab',
+          color: AppPalette.white,
+          fontFamily: AppTypography.fontFamily,
           fontSize: fontSize,
           fontWeight: FontWeight.w600,
         ),

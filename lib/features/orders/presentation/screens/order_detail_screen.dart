@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:tailor_khata/core/theme/app_colors.dart';
+import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/features/orders/domain/entities/order.dart'
     as order_entity;
 import 'package:tailor_khata/features/orders/presentation/providers/orders_notifier.dart';
@@ -17,22 +17,40 @@ class OrderDetailScreen extends ConsumerWidget {
       return showDialog<int>(
         context: context,
         builder: (ctx) => AlertDialog(
-          backgroundColor: AppColors.charcoalThread,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Confirm Delivery', style: TextStyle(color: AppColors.tailorChalk, fontFamily: 'Zilla Slab')),
+          title: const Text(
+            'Confirm Delivery',
+            style: TextStyle(
+              color: AppPalette.carbon,
+              fontFamily: AppTypography.fontFamily,
+            ),
+          ),
           content: const Text(
             'Are you sure you want to mark this order as Delivered?\n\nOnce marked as Delivered, you cannot change its status again.',
-            style: TextStyle(color: AppColors.ghost, fontFamily: 'Noto Sans'),
+            style: TextStyle(
+              color: AppPalette.ink70,
+              fontFamily: AppTypography.fontFamily,
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, 0), // 0 = Cancel
-              child: const Text('Cancel', style: TextStyle(color: AppColors.fabricGrey)),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: AppPalette.ink70),
+              ),
             ),
             ElevatedButton(
-              onPressed: () => Navigator.pop(ctx, 2), // 2 = Mark delivered (no payment needed)
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.brassTape),
-              child: const Text('Confirm', style: TextStyle(color: Colors.white)),
+              onPressed: () => Navigator.pop(
+                ctx,
+                2,
+              ), // 2 = Mark delivered (no payment needed)
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppPalette.carbon,
+              ),
+              child: const Text(
+                'Confirm',
+                style: TextStyle(color: AppPalette.white),
+              ),
             ),
           ],
         ),
@@ -43,26 +61,43 @@ class OrderDetailScreen extends ConsumerWidget {
     return showDialog<int>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.charcoalThread,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Payment Collection', style: TextStyle(color: AppColors.tailorChalk, fontFamily: 'Zilla Slab')),
+        title: const Text(
+          'Payment Collection',
+          style: TextStyle(
+            color: AppPalette.carbon,
+            fontFamily: AppTypography.fontFamily,
+          ),
+        ),
         content: Text(
           'Remaining Balance: Rs ${balance.toStringAsFixed(0)}\n\nHas the customer paid the remaining balance?',
-          style: const TextStyle(color: AppColors.ghost, fontFamily: 'Noto Sans'),
+          style: const TextStyle(
+            color: AppPalette.ink70,
+            fontFamily: AppTypography.fontFamily,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, 0), // 0 = Cancel
-            child: const Text('Cancel', style: TextStyle(color: AppColors.fabricGrey)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: AppPalette.ink70),
+            ),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(ctx, 1), // 1 = Delivered but NOT Paid
-            child: const Text('Not Paid', style: TextStyle(color: AppColors.seamRed)),
+            onPressed: () =>
+                Navigator.pop(ctx, 1), // 1 = Delivered but NOT Paid
+            child: const Text(
+              'Not Paid',
+              style: TextStyle(color: AppPalette.carbon),
+            ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, 2), // 2 = Delivered AND Paid
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.brassTape),
-            child: const Text('Paid & Deliver', style: TextStyle(color: Colors.white)),
+            style: ElevatedButton.styleFrom(backgroundColor: AppPalette.carbon),
+            child: const Text(
+              'Paid & Deliver',
+              style: TextStyle(color: AppPalette.white),
+            ),
           ),
         ],
       ),
@@ -75,13 +110,13 @@ class OrderDetailScreen extends ConsumerWidget {
     final ordersAsync = ref.watch(ordersNotifierProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.tailorChalk,
+      backgroundColor: AppPalette.white,
       appBar: AppBar(
-        backgroundColor: AppColors.charcoalThread,
+        backgroundColor: AppPalette.carbon,
         elevation: 0,
         leading: IconButton(
           icon: const Row(
-            children: [Icon(Icons.chevron_left, color: AppColors.brassTape)],
+            children: [Icon(Icons.chevron_left, color: AppPalette.white)],
           ),
           onPressed: () => context.pop(),
         ),
@@ -92,8 +127,8 @@ class OrderDetailScreen extends ConsumerWidget {
             return Text(
               orderList.first.garmentType,
               style: const TextStyle(
-                color: AppColors.tailorChalk,
-                fontFamily: 'Zilla Slab',
+                color: AppPalette.white,
+                fontFamily: AppTypography.fontFamily,
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
               ),
@@ -101,12 +136,12 @@ class OrderDetailScreen extends ConsumerWidget {
           },
           loading: () => const Text(''),
           error: (e, s) =>
-              const Text('Error', style: TextStyle(color: AppColors.seamRed)),
+              const Text('Error', style: TextStyle(color: AppPalette.white)),
         ),
       ),
       body: ordersAsync.when(
         loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.brassTape),
+          child: CircularProgressIndicator(color: AppPalette.carbon),
         ),
         error: (err, stack) => Center(child: Text('Error: $err')),
         data: (orders) {
@@ -123,7 +158,7 @@ class OrderDetailScreen extends ConsumerWidget {
               // Header area
               Container(
                 width: double.infinity,
-                color: AppColors.charcoalThread,
+                color: AppPalette.carbon,
                 padding: const EdgeInsets.only(left: 56, right: 16, bottom: 16),
                 child: customersAsync.when(
                   data: (customers) {
@@ -137,19 +172,19 @@ class OrderDetailScreen extends ConsumerWidget {
                     return Text(
                       '$cName · $cPhone',
                       style: const TextStyle(
-                        color: AppColors.ghost,
-                        fontFamily: 'Noto Sans',
+                        color: AppPalette.onCarbonMuted,
+                        fontFamily: AppTypography.fontFamily,
                         fontSize: 13,
                       ),
                     );
                   },
                   loading: () => const Text(
                     'Loading customer...',
-                    style: TextStyle(color: AppColors.ghost),
+                    style: TextStyle(color: AppPalette.onCarbonMuted),
                   ),
                   error: (e, s) => const Text(
                     'Customer error',
-                    style: TextStyle(color: AppColors.seamRed),
+                    style: TextStyle(color: AppPalette.white),
                   ),
                 ),
               ),
@@ -163,9 +198,9 @@ class OrderDetailScreen extends ConsumerWidget {
                       // Info Card
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppPalette.white,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.fabricGrey),
+                          border: Border.all(color: AppPalette.lineStrong),
                         ),
                         child: Column(
                           children: [
@@ -178,9 +213,9 @@ class OrderDetailScreen extends ConsumerWidget {
                                   const Text(
                                     'Fabric',
                                     style: TextStyle(
-                                      color: AppColors.inkMuted,
+                                      color: AppPalette.ink70,
                                       fontSize: 13,
-                                      fontFamily: 'Noto Sans',
+                                      fontFamily: AppTypography.fontFamily,
                                     ),
                                   ),
                                   Text(
@@ -188,9 +223,9 @@ class OrderDetailScreen extends ConsumerWidget {
                                         ? order.notes!
                                         : 'Not specified',
                                     style: const TextStyle(
-                                      color: AppColors.charcoalThread,
+                                      color: AppPalette.carbon,
                                       fontSize: 15,
-                                      fontFamily: 'Noto Sans',
+                                      fontFamily: AppTypography.fontFamily,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -203,7 +238,7 @@ class OrderDetailScreen extends ConsumerWidget {
                               decoration: const BoxDecoration(
                                 border: Border(
                                   bottom: BorderSide(
-                                    color: Color(0x80B8863B),
+                                    color: AppPalette.oliveBorder,
                                     width: 1.5,
                                   ),
                                 ),
@@ -220,14 +255,14 @@ class OrderDetailScreen extends ConsumerWidget {
                                     child: _buildFinancialColumn(
                                       'Total',
                                       'Rs ${order.totalAmount}',
-                                      AppColors.charcoalThread,
+                                      AppPalette.carbon,
                                     ),
                                   ),
                                   Expanded(
                                     child: _buildFinancialColumn(
                                       'Advance',
                                       'Rs ${order.advancePaid}',
-                                      AppColors.stitchNavy,
+                                      AppPalette.carbon,
                                     ),
                                   ),
                                   Expanded(
@@ -236,8 +271,8 @@ class OrderDetailScreen extends ConsumerWidget {
                                       'Rs ${order.totalAmount - order.advancePaid}',
                                       (order.totalAmount - order.advancePaid) <=
                                               0
-                                          ? AppColors.greenOk
-                                          : AppColors.seamRed,
+                                          ? AppPalette.oliveInk
+                                          : AppPalette.carbon,
                                     ),
                                   ),
                                 ],
@@ -251,10 +286,15 @@ class OrderDetailScreen extends ConsumerWidget {
                       StatusStepper(
                         currentStatus: order.status,
                         onStatusChanged: (newStatus) async {
-                          int paymentResult = 2; // Default assume paid or no balance
+                          int paymentResult =
+                              2; // Default assume paid or no balance
                           if (newStatus == 'Delivered') {
-                            final balance = order.totalAmount - order.advancePaid;
-                            final confirmed = await _showDeliveryConfirmation(context, balance);
+                            final balance =
+                                order.totalAmount - order.advancePaid;
+                            final confirmed = await _showDeliveryConfirmation(
+                              context,
+                              balance,
+                            );
                             if (confirmed == null || confirmed == 0) return;
                             paymentResult = confirmed;
                           }
@@ -266,10 +306,14 @@ class OrderDetailScreen extends ConsumerWidget {
                             status: newStatus,
                             deliveryDate: order.deliveryDate,
                             totalAmount: order.totalAmount,
-                            advancePaid: paymentResult == 2 ? order.totalAmount : order.advancePaid,
+                            advancePaid: paymentResult == 2
+                                ? order.totalAmount
+                                : order.advancePaid,
                             notes: order.notes,
                             createdAt: order.createdAt,
-                            deliveredAt: newStatus == 'Delivered' ? DateTime.now() : order.deliveredAt,
+                            deliveredAt: newStatus == 'Delivered'
+                                ? DateTime.now()
+                                : order.deliveredAt,
                             ownerId: order.ownerId,
                             syncStatus: order.syncStatus,
                           );
@@ -281,29 +325,46 @@ class OrderDetailScreen extends ConsumerWidget {
                       const SizedBox(height: 32),
 
                       // If order is Delivered but still has a balance, show Collect Payment button
-                      if (order.status == 'Delivered' && (order.totalAmount - order.advancePaid) > 0)
+                      if (order.status == 'Delivered' &&
+                          (order.totalAmount - order.advancePaid) > 0)
                         ElevatedButton(
                           onPressed: () async {
-                            final balance = order.totalAmount - order.advancePaid;
+                            final balance =
+                                order.totalAmount - order.advancePaid;
                             final confirmed = await showDialog<bool>(
                               context: context,
                               builder: (ctx) => AlertDialog(
-                                backgroundColor: AppColors.charcoalThread,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                title: const Text('Collect Payment', style: TextStyle(color: AppColors.tailorChalk, fontFamily: 'Zilla Slab')),
+                                title: const Text(
+                                  'Collect Payment',
+                                  style: TextStyle(
+                                    color: AppPalette.carbon,
+                                    fontFamily: AppTypography.fontFamily,
+                                  ),
+                                ),
                                 content: Text(
                                   'Collect the pending due of Rs ${balance.toStringAsFixed(0)}?',
-                                  style: const TextStyle(color: AppColors.ghost, fontFamily: 'Noto Sans'),
+                                  style: const TextStyle(
+                                    color: AppPalette.ink70,
+                                    fontFamily: AppTypography.fontFamily,
+                                  ),
                                 ),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.pop(ctx, false),
-                                    child: const Text('Cancel', style: TextStyle(color: AppColors.fabricGrey)),
+                                    child: const Text(
+                                      'Cancel',
+                                      style: TextStyle(color: AppPalette.ink70),
+                                    ),
                                   ),
                                   ElevatedButton(
                                     onPressed: () => Navigator.pop(ctx, true),
-                                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.brassTape),
-                                    child: const Text('Mark as Paid', style: TextStyle(color: Colors.white)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppPalette.carbon,
+                                    ),
+                                    child: const Text(
+                                      'Mark as Paid',
+                                      style: TextStyle(color: AppPalette.white),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -321,33 +382,48 @@ class OrderDetailScreen extends ConsumerWidget {
                                 advancePaid: order.totalAmount, // Clear the due
                                 notes: order.notes,
                                 createdAt: order.createdAt,
-                                deliveredAt: DateTime.now(), // Update time of final payment
+                                deliveredAt:
+                                    DateTime.now(), // Update time of final payment
                                 ownerId: order.ownerId,
                                 syncStatus: order.syncStatus,
                               );
-                              ref.read(ordersNotifierProvider.notifier).updateOrder(updatedOrder);
+                              ref
+                                  .read(ordersNotifierProvider.notifier)
+                                  .updateOrder(updatedOrder);
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.brassTape,
+                            backgroundColor: AppPalette.carbon,
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             elevation: 0,
                           ),
                           child: const Text(
                             'Collect Due Amount',
-                            style: TextStyle(fontFamily: 'Noto Sans', fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                            style: TextStyle(
+                              fontFamily: AppTypography.fontFamily,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppPalette.white,
+                            ),
                           ),
                         ),
-                        
-                      if (order.status == 'Delivered' && (order.totalAmount - order.advancePaid) > 0)
+
+                      if (order.status == 'Delivered' &&
+                          (order.totalAmount - order.advancePaid) > 0)
                         const SizedBox(height: 12),
 
                       if (order.status != 'Delivered')
                         ElevatedButton(
                           onPressed: () async {
-                            final balance = order.totalAmount - order.advancePaid;
-                            final confirmed = await _showDeliveryConfirmation(context, balance);
+                            final balance =
+                                order.totalAmount - order.advancePaid;
+                            final confirmed = await _showDeliveryConfirmation(
+                              context,
+                              balance,
+                            );
                             if (confirmed == null || confirmed == 0) return;
 
                             final updatedOrder = order_entity.Order(
@@ -358,7 +434,9 @@ class OrderDetailScreen extends ConsumerWidget {
                               status: 'Delivered',
                               deliveryDate: order.deliveryDate,
                               totalAmount: order.totalAmount,
-                              advancePaid: confirmed == 2 ? order.totalAmount : order.advancePaid,
+                              advancePaid: confirmed == 2
+                                  ? order.totalAmount
+                                  : order.advancePaid,
                               notes: order.notes,
                               createdAt: order.createdAt,
                               deliveredAt: DateTime.now(),
@@ -370,7 +448,7 @@ class OrderDetailScreen extends ConsumerWidget {
                                 .updateOrder(updatedOrder);
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.stitchNavy,
+                            backgroundColor: AppPalette.carbon,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -380,10 +458,10 @@ class OrderDetailScreen extends ConsumerWidget {
                           child: const Text(
                             'Mark as Delivered',
                             style: TextStyle(
-                              fontFamily: 'Noto Sans',
+                              fontFamily: AppTypography.fontFamily,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              color: AppPalette.white,
                             ),
                           ),
                         ),
@@ -394,13 +472,13 @@ class OrderDetailScreen extends ConsumerWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Reminder sent via WhatsApp'),
-                              backgroundColor: AppColors.charcoalThread,
+                              backgroundColor: AppPalette.carbon,
                               behavior: SnackBarBehavior.floating,
                             ),
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.greenOk,
+                          backgroundColor: AppPalette.oliveInk,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -412,17 +490,17 @@ class OrderDetailScreen extends ConsumerWidget {
                           children: [
                             Icon(
                               Icons.chat_bubble,
-                              color: Colors.white,
+                              color: AppPalette.white,
                               size: 20,
                             ),
                             SizedBox(width: 8),
                             Text(
                               'Send Reminder',
                               style: TextStyle(
-                                fontFamily: 'Noto Sans',
+                                fontFamily: AppTypography.fontFamily,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white,
+                                color: AppPalette.white,
                               ),
                             ),
                           ],
@@ -447,9 +525,9 @@ class OrderDetailScreen extends ConsumerWidget {
         Text(
           label.toUpperCase(),
           style: const TextStyle(
-            color: AppColors.inkMuted,
+            color: AppPalette.ink70,
             fontSize: 11,
-            fontFamily: 'Noto Sans',
+            fontFamily: AppTypography.fontFamily,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -459,7 +537,8 @@ class OrderDetailScreen extends ConsumerWidget {
           style: TextStyle(
             color: valueColor,
             fontSize: 16,
-            fontFamily: 'Roboto Mono',
+            fontFamily: AppTypography.fontFamily,
+            fontFeatures: AppTypography.tabularFigures,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -472,7 +551,7 @@ class _TapeDividerPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0x80B8863B)
+      ..color = AppPalette.oliveBorder
       ..strokeWidth = 1.5;
 
     for (double i = 0; i < size.width; i += 9) {

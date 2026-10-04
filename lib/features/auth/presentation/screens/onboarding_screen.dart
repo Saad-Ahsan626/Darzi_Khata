@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tailor_khata/core/theme/app_colors.dart';
+import 'package:tailor_khata/core/theme/design_tokens.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -38,7 +38,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.tailorChalk,
+      backgroundColor: AppPalette.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -55,26 +55,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     iconWidget: const Icon(
                       Icons.content_cut_rounded,
                       size: 150,
-                      color: AppColors.fabricGrey,
+                      color: AppPalette.lineStrong,
                     ),
                     titleEn: 'Digital Measurements',
-                    descEn: 'Record measurements once on a digital model. Find them instantly the next time your customer visits.',
+                    descEn:
+                        'Record measurements once on a digital model. Find them instantly the next time your customer visits.',
                     titleUr: 'ڈیجیٹل ناپ',
-                    descUr: 'گاہک کا ناپ ایک بار محفوظ کریں اور اگلی بار فوری تلاش کریں۔',
+                    descUr:
+                        'گاہک کا ناپ ایک بار محفوظ کریں اور اگلی بار فوری تلاش کریں۔',
                   ),
                   _buildPage(
                     iconWidget: _buildFakeOrderCard(),
                     titleEn: 'Track Every Order',
-                    descEn: 'Never miss a delivery date. Track every suit from cutting to delivery with real-time status updates.',
+                    descEn:
+                        'Never miss a delivery date. Track every suit from cutting to delivery with real-time status updates.',
                     titleUr: 'آرڈر ٹریکنگ',
-                    descUr: 'ہر آرڈر کی مکمل تفصیلات اور ڈیلیوری کی تاریخ پر نظر رکھیں۔',
+                    descUr:
+                        'ہر آرڈر کی مکمل تفصیلات اور ڈیلیوری کی تاریخ پر نظر رکھیں۔',
                   ),
                   _buildPage(
                     imagePath: 'assets/on_boarding/3rd.png',
                     titleEn: 'Works Fully Offline',
-                    descEn: 'Your data stays on your device. Manage your shop anywhere, even without internet. Secure and private.',
+                    descEn:
+                        'Your data stays on your device. Manage your shop anywhere, even without internet. Secure and private.',
                     titleUr: 'انٹرنیٹ کے بغیر',
-                    descUr: 'آپ کا تمام ڈیٹا محفوظ ہے اور بغیر انٹرنیٹ کے بھی کام کرتا ہے۔',
+                    descUr:
+                        'آپ کا تمام ڈیٹا محفوظ ہے اور بغیر انٹرنیٹ کے بھی کام کرتا ہے۔',
                   ),
                 ],
               ),
@@ -91,12 +97,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       width: 280,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppPalette.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.fabricGrey),
+        border: Border.all(color: AppPalette.lineStrong),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(13),
+            color: AppPalette.carbon.withAlpha(13),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -112,21 +118,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               Text(
                 'ORD-7892',
                 style: TextStyle(
-                  fontFamily: 'Noto Sans',
+                  fontFamily: AppTypography.fontFamily,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.charcoalThread,
+                  color: AppPalette.carbon,
                 ),
               ),
-              Icon(Icons.more_vert, size: 20, color: AppColors.inkMuted),
+              Icon(Icons.more_vert, size: 20, color: AppPalette.ink70),
             ],
           ),
           const SizedBox(height: 4),
           const Text(
             'Ali Hassan',
             style: TextStyle(
-              fontFamily: 'Noto Sans',
+              fontFamily: AppTypography.fontFamily,
               fontSize: 12,
-              color: AppColors.inkMuted,
+              color: AppPalette.ink70,
             ),
           ),
           const SizedBox(height: 16),
@@ -137,10 +143,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               (index) => Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: Container(
-                    height: 1,
-                    color: AppColors.fabricGrey,
-                  ),
+                  child: Container(height: 1, color: AppPalette.lineStrong),
                 ),
               ),
             ),
@@ -159,18 +162,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildFakeChip(String text, IconData icon, bool isActive, [bool isCurrent = false]) {
+  Widget _buildFakeChip(
+    String text,
+    IconData icon,
+    bool isActive, [
+    bool isCurrent = false,
+  ]) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       decoration: BoxDecoration(
         color: isCurrent
-            ? AppColors.brassTape.withAlpha(51)
+            ? AppPalette.carbon.withAlpha(51)
             : isActive
-                ? AppColors.fabricGrey.withAlpha(128)
-                : Colors.transparent,
+            ? AppPalette.lineStrong.withAlpha(128)
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isActive || isCurrent ? Colors.transparent : AppColors.fabricGrey.withAlpha(128),
+          color: isActive || isCurrent
+              ? Colors.transparent
+              : AppPalette.lineStrong.withAlpha(128),
         ),
       ),
       child: Row(
@@ -180,23 +190,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             icon,
             size: 12,
             color: isCurrent
-                ? AppColors.brassTape
+                ? AppPalette.carbon
                 : isActive
-                    ? AppColors.charcoalThread
-                    : AppColors.fabricGrey,
+                ? AppPalette.carbon
+                : AppPalette.lineStrong,
           ),
           const SizedBox(width: 4),
           Text(
             text,
             style: TextStyle(
-              fontFamily: 'Noto Sans',
+              fontFamily: AppTypography.fontFamily,
               fontSize: 9,
               fontWeight: FontWeight.bold,
               color: isCurrent
-                  ? AppColors.brassTape
+                  ? AppPalette.carbon
                   : isActive
-                      ? AppColors.charcoalThread
-                      : AppColors.fabricGrey,
+                  ? AppPalette.carbon
+                  : AppPalette.lineStrong,
             ),
           ),
         ],
@@ -239,10 +249,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             titleEn,
             style: const TextStyle(
-              fontFamily: 'Zilla Slab',
+              fontFamily: AppTypography.fontFamily,
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: AppColors.charcoalThread,
+              color: AppPalette.carbon,
             ),
             textAlign: TextAlign.center,
           ),
@@ -250,9 +260,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             descEn,
             style: const TextStyle(
-              fontFamily: 'Noto Sans',
+              fontFamily: AppTypography.fontFamily,
               fontSize: 12,
-              color: AppColors.stitchNavy,
+              color: AppPalette.carbon,
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -264,10 +274,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               (index) => Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: Container(
-                    height: 1,
-                    color: AppColors.fabricGrey,
-                  ),
+                  child: Container(height: 1, color: AppPalette.lineStrong),
                 ),
               ),
             ),
@@ -276,9 +283,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             titleUr,
             style: const TextStyle(
-              fontFamily: 'Noto Nastaliq Urdu',
+              fontFamily: AppTypography.fontFamily,
               fontSize: 20,
-              color: AppColors.brassTape,
+              color: AppPalette.carbon,
             ),
             textAlign: TextAlign.center,
           ),
@@ -286,9 +293,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             descUr,
             style: const TextStyle(
-              fontFamily: 'Noto Nastaliq Urdu',
+              fontFamily: AppTypography.fontFamily,
               fontSize: 14,
-              color: AppColors.stitchNavy,
+              color: AppPalette.carbon,
               height: 2.0,
             ),
             textAlign: TextAlign.center,
@@ -315,7 +322,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 height: 8,
                 width: isCurrent ? 24 : 8,
                 decoration: BoxDecoration(
-                  color: isCurrent ? AppColors.brassTape : AppColors.fabricGrey,
+                  color: isCurrent ? AppPalette.carbon : AppPalette.lineStrong,
                   borderRadius: BorderRadius.circular(4),
                 ),
               );
@@ -326,7 +333,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.brassTape,
+                backgroundColor: AppPalette.carbon,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -340,14 +347,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   Text(
                     _currentPage == 2 ? 'Get Started' : 'Next',
                     style: const TextStyle(
-                      fontFamily: 'Noto Sans',
+                      fontFamily: AppTypography.fontFamily,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppPalette.white,
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Icon(Icons.arrow_forward, size: 20, color: Colors.white),
+                  const Icon(
+                    Icons.arrow_forward,
+                    size: 20,
+                    color: AppPalette.white,
+                  ),
                 ],
               ),
             ),

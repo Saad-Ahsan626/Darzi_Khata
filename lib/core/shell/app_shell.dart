@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:go_router/go_router.dart';
 
 class AppShell extends StatelessWidget {
@@ -26,7 +27,7 @@ class AppShell extends StatelessWidget {
           _calculateSelectedIndex(context) == 1 ||
               _calculateSelectedIndex(context) == 2
           ? FloatingActionButton(
-              backgroundColor: const Color(0xFFB8863B), // brassTape
+              backgroundColor: AppPalette.carbon, // Primary action
               onPressed: () {
                 final idx = _calculateSelectedIndex(context);
                 if (idx == 1) {
@@ -35,7 +36,7 @@ class AppShell extends StatelessWidget {
                   context.push('/orders/new');
                 }
               },
-              child: const Icon(Icons.add, size: 34, color: Colors.white),
+              child: const Icon(Icons.add, size: 34, color: AppPalette.white),
             )
           : null,
     );

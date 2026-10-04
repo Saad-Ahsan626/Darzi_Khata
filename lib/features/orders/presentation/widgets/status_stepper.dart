@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tailor_khata/core/theme/app_colors.dart';
+import 'package:tailor_khata/core/theme/design_tokens.dart';
 
 class StatusStepper extends StatelessWidget {
   final String currentStatus;
@@ -30,15 +30,17 @@ class StatusStepper extends StatelessWidget {
         final isCurrent = index == currentIndex;
 
         return GestureDetector(
-          onTap: currentStatus == 'Delivered' ? null : () => onStatusChanged(status['en']!),
+          onTap: currentStatus == 'Delivered'
+              ? null
+              : () => onStatusChanged(status['en']!),
           child: Container(
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: isCurrent ? AppColors.chalkDeep : Colors.transparent,
+              color: isCurrent ? AppPalette.surfaceControl : Colors.transparent,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isCurrent ? AppColors.brassTape : Colors.transparent,
+                color: isCurrent ? AppPalette.carbon : Colors.transparent,
               ),
             ),
             child: Row(
@@ -49,17 +51,21 @@ class StatusStepper extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: isCompletedOrCurrent
-                        ? AppColors.brassTape
+                        ? AppPalette.carbon
                         : Colors.transparent,
                     border: Border.all(
                       color: isCompletedOrCurrent
-                          ? AppColors.brassTape
-                          : AppColors.fabricGrey,
+                          ? AppPalette.carbon
+                          : AppPalette.lineStrong,
                       width: 2,
                     ),
                   ),
                   child: isCompletedOrCurrent
-                      ? const Icon(Icons.check, size: 16, color: Colors.white)
+                      ? const Icon(
+                          Icons.check,
+                          size: 16,
+                          color: AppPalette.white,
+                        )
                       : null,
                 ),
                 const SizedBox(width: 16),
@@ -67,20 +73,20 @@ class StatusStepper extends StatelessWidget {
                   child: Text(
                     status['en']!,
                     style: TextStyle(
-                      fontFamily: 'Noto Sans',
+                      fontFamily: AppTypography.fontFamily,
                       fontSize: 16,
                       fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w500,
-                      color: AppColors.charcoalThread,
+                      color: AppPalette.carbon,
                     ),
                   ),
                 ),
                 Text(
                   status['ur']!,
                   style: TextStyle(
-                    fontFamily: 'Noto Nastaliq Urdu',
+                    fontFamily: AppTypography.fontFamily,
                     fontSize: 16,
                     fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w400,
-                    color: AppColors.charcoalThread,
+                    color: AppPalette.carbon,
                   ),
                 ),
               ],

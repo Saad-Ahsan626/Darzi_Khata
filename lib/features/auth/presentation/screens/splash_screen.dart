@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tailor_khata/core/theme/app_colors.dart';
+import 'package:tailor_khata/core/theme/design_tokens.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -55,7 +55,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.charcoalThread, // The dark background
+      backgroundColor: AppPalette.carbon, // The dark background
       body: Stack(
         children: [
           Center(
@@ -67,25 +67,25 @@ class _SplashScreenState extends State<SplashScreen>
                   const Icon(
                     Icons.content_cut_rounded,
                     size: 120,
-                    color: AppColors.brassTape,
+                    color: AppPalette.white,
                   ),
                   const SizedBox(height: 24),
                   const Text(
                     'Tailor Khata',
                     style: TextStyle(
-                      fontFamily: 'Zilla Slab',
+                      fontFamily: AppTypography.fontFamily,
                       fontSize: 40,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.tailorChalk, // The off-white text
+                      color: AppPalette.white, // The off-white text
                     ),
                   ),
                   const SizedBox(height: 8),
                   const Text(
                     'ٹیلر کھاتہ',
                     style: TextStyle(
-                      fontFamily: 'Noto Nastaliq Urdu',
+                      fontFamily: AppTypography.fontFamily,
                       fontSize: 24,
-                      color: AppColors.brassTape, // Golden touch
+                      color: AppPalette.white, // Light accent on carbon
                     ),
                   ),
                 ],
@@ -102,11 +102,12 @@ class _SplashScreenState extends State<SplashScreen>
                 'TAILOR KHATA V1.0.0',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontFamily: 'Roboto Mono',
+                  fontFamily: AppTypography.fontFamily,
+                  fontFeatures: AppTypography.tabularFigures,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 2,
-                  color: AppColors.tailorChalk.withAlpha(128),
+                  color: AppPalette.white.withAlpha(128),
                 ),
               ),
             ),

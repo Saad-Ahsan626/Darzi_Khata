@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:tailor_khata/core/theme/app_colors.dart';
+import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/features/orders/presentation/providers/orders_notifier.dart';
 
 class RevenueScreen extends ConsumerWidget {
@@ -26,13 +26,13 @@ class RevenueScreen extends ConsumerWidget {
     final ordersAsync = ref.watch(ordersNotifierProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.tailorChalk,
+      backgroundColor: AppPalette.white,
       appBar: AppBar(
-        backgroundColor: AppColors.charcoalThread,
+        backgroundColor: AppPalette.carbon,
         elevation: 0,
         leading: IconButton(
           icon: const Row(
-            children: [Icon(Icons.chevron_left, color: AppColors.brassTape)],
+            children: [Icon(Icons.chevron_left, color: AppPalette.white)],
           ),
           onPressed: () => context.pop(),
         ),
@@ -42,17 +42,17 @@ class RevenueScreen extends ConsumerWidget {
             Text(
               'Revenue',
               style: TextStyle(
-                fontFamily: 'Zilla Slab',
+                fontFamily: AppTypography.fontFamily,
                 fontSize: 22,
-                color: AppColors.tailorChalk,
+                color: AppPalette.white,
               ),
             ),
             Text(
               'آمدنی',
               style: TextStyle(
-                fontFamily: 'Noto Nastaliq Urdu',
+                fontFamily: AppTypography.fontFamily,
                 fontSize: 18,
-                color: AppColors.brassTape,
+                color: AppPalette.white,
               ),
             ),
           ],
@@ -60,7 +60,8 @@ class RevenueScreen extends ConsumerWidget {
       ),
       body: ordersAsync.when(
         loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.brassTape)),
+          child: CircularProgressIndicator(color: AppPalette.carbon),
+        ),
         error: (e, s) => Center(child: Text('Error: $e')),
         data: (orders) {
           final now = DateTime.now();
@@ -98,8 +99,8 @@ class RevenueScreen extends ConsumerWidget {
                   subtitle: 'Past 7 days',
                   amount: thisWeek,
                   icon: Icons.date_range,
-                  color: AppColors.stitchNavy,
-                  textColor: Colors.white,
+                  color: AppPalette.carbon,
+                  textColor: AppPalette.white,
                 ),
                 const SizedBox(height: 16),
                 _buildRevenueCard(
@@ -107,8 +108,8 @@ class RevenueScreen extends ConsumerWidget {
                   subtitle: 'Current calendar month',
                   amount: thisMonth,
                   icon: Icons.calendar_today,
-                  color: Colors.white,
-                  textColor: AppColors.charcoalThread,
+                  color: AppPalette.white,
+                  textColor: AppPalette.carbon,
                 ),
                 const SizedBox(height: 16),
                 _buildRevenueCard(
@@ -116,8 +117,8 @@ class RevenueScreen extends ConsumerWidget {
                   subtitle: 'Current calendar year',
                   amount: thisYear,
                   icon: Icons.event,
-                  color: Colors.white,
-                  textColor: AppColors.charcoalThread,
+                  color: AppPalette.white,
+                  textColor: AppPalette.carbon,
                 ),
                 const SizedBox(height: 16),
                 _buildRevenueCard(
@@ -125,8 +126,8 @@ class RevenueScreen extends ConsumerWidget {
                   subtitle: 'Total cash collected',
                   amount: lifetime,
                   icon: Icons.account_balance_wallet,
-                  color: AppColors.brassTape,
-                  textColor: Colors.white,
+                  color: AppPalette.carbon,
+                  textColor: AppPalette.white,
                 ),
               ],
             ),
@@ -144,20 +145,20 @@ class RevenueScreen extends ConsumerWidget {
     required Color color,
     required Color textColor,
   }) {
-    final bool isDark = color != Colors.white;
+    final bool isDark = color != AppPalette.white;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(16),
-        border: isDark ? null : Border.all(color: AppColors.fabricGrey),
+        border: isDark ? null : Border.all(color: AppPalette.lineStrong),
         boxShadow: isDark
             ? [
                 BoxShadow(
-                  color: color.withOpacity(0.3),
+                  color: color.withValues(alpha: 0.3),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
-                )
+                ),
               ]
             : null,
       ),
@@ -166,12 +167,14 @@ class RevenueScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDark ? Colors.white.withOpacity(0.1) : AppColors.tailorChalk,
+              color: isDark
+                  ? AppPalette.white.withValues(alpha: 0.1)
+                  : AppPalette.white,
               shape: BoxShape.circle,
             ),
             child: Icon(
               icon,
-              color: isDark ? Colors.white : AppColors.brassTape,
+              color: isDark ? AppPalette.white : AppPalette.carbon,
               size: 28,
             ),
           ),
@@ -183,18 +186,19 @@ class RevenueScreen extends ConsumerWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    fontFamily: 'Noto Sans',
+                    fontFamily: AppTypography.fontFamily,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.5,
-                    color: isDark ? Colors.white70 : AppColors.inkMuted,
+                    color: isDark ? AppPalette.onCarbonMuted : AppPalette.ink70,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Rs ${amount.toStringAsFixed(0)}',
                   style: TextStyle(
-                    fontFamily: 'Roboto Mono',
+                    fontFamily: AppTypography.fontFamily,
+                    fontFeatures: AppTypography.tabularFigures,
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
                     color: textColor,
@@ -204,9 +208,9 @@ class RevenueScreen extends ConsumerWidget {
                 Text(
                   subtitle,
                   style: TextStyle(
-                    fontFamily: 'Noto Sans',
+                    fontFamily: AppTypography.fontFamily,
                     fontSize: 12,
-                    color: isDark ? Colors.white54 : AppColors.ghost,
+                    color: isDark ? AppPalette.onCarbonMuted : AppPalette.ink70,
                   ),
                 ),
               ],

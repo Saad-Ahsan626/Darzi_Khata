@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:tailor_khata/core/theme/app_colors.dart';
+import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/features/customers/domain/entities/customer.dart';
 import 'package:tailor_khata/features/customers/presentation/widgets/customer_avatar.dart';
 import 'package:go_router/go_router.dart';
@@ -19,9 +19,9 @@ class CustomerCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppPalette.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.fabricGrey, width: 1),
+          border: Border.all(color: AppPalette.lineStrong, width: 1),
         ),
         child: Row(
           children: [
@@ -37,24 +37,25 @@ class CustomerCard extends StatelessWidget {
                         child: Text(
                           customer.name,
                           style: const TextStyle(
-                            fontFamily: 'Noto Sans',
+                            fontFamily: AppTypography.fontFamily,
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.charcoalThread,
+                            color: AppPalette.carbon,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (customer.urduName != null && customer.urduName!.isNotEmpty) ...[
+                      if (customer.urduName != null &&
+                          customer.urduName!.isNotEmpty) ...[
                         const SizedBox(width: 8),
                         Flexible(
                           child: Text(
                             customer.urduName!,
                             style: const TextStyle(
-                              fontFamily: 'Noto Nastaliq Urdu',
+                              fontFamily: AppTypography.fontFamily,
                               fontSize: 14,
-                              color: AppColors.inkSoft,
+                              color: AppPalette.ink70,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -65,11 +66,14 @@ class CustomerCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    customer.phone?.isNotEmpty == true ? customer.phone! : 'No phone number',
+                    customer.phone?.isNotEmpty == true
+                        ? customer.phone!
+                        : 'No phone number',
                     style: const TextStyle(
-                      fontFamily: 'Roboto Mono',
+                      fontFamily: AppTypography.fontFamily,
+                      fontFeatures: AppTypography.tabularFigures,
                       fontSize: 13,
-                      color: AppColors.inkMuted,
+                      color: AppPalette.ink70,
                     ),
                   ),
                 ],
@@ -81,20 +85,21 @@ class CustomerCard extends StatelessWidget {
                 const Text(
                   'ADDED',
                   style: TextStyle(
-                    fontFamily: 'Noto Sans',
+                    fontFamily: AppTypography.fontFamily,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.5,
-                    color: AppColors.inkMuted,
+                    color: AppPalette.ink70,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   DateFormat('MMM d').format(customer.createdAt),
                   style: const TextStyle(
-                    fontFamily: 'Roboto Mono',
+                    fontFamily: AppTypography.fontFamily,
+                    fontFeatures: AppTypography.tabularFigures,
                     fontSize: 13,
-                    color: AppColors.charcoalThread,
+                    color: AppPalette.carbon,
                   ),
                 ),
               ],

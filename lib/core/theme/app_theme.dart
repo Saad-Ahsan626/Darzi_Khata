@@ -1,121 +1,280 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-class AppTheme {
-  // Design Tokens (Colors)
-  static const Color charcoalThread = Color(0xFF2B2E33);
-  static const Color tailorChalk = Color(0xFFF7F5F0);
-  static const Color chalkDeep = Color(0xFFF2EFE8);
-  static const Color brassTape = Color(0xFFB8863B);
-  static const Color stitchNavy = Color(0xFF1F3B4D);
-  static const Color seamRed = Color(0xFFA63D40);
-  static const Color fabricGrey = Color(0xFFD8D3C9);
-  static const Color inkMuted = Color(0xFF8A8578);
-  static const Color inkSoft = Color(0xFF5A5C60);
-  static const Color ghost = Color(0xFFA8A49A);
-  static const Color greenOk = Color(0xFF1A7A3F);
-  static const Color whatsapp = Color(0xFF25D366);
+import 'design_tokens.dart';
 
-  // Status Background Tints (~12% opacity)
-  static const Color navyStatusBg = Color(0xFFE7EDF1);
-  static const Color brassStatusBg = Color(0xFFF3E9D6);
-  static const Color greenStatusBg = Color(0xFFDFF0E4);
-  static const Color greyStatusBg = Color(0xFFECECEA);
+/// Material presentation theme. Domain and data code never depend on this.
+abstract final class AppTheme {
+  static final ThemeData lightTheme = _buildLightTheme();
 
-  static ThemeData get lightTheme {
+  static TextStyle get numberStyle =>
+      AppTypography.numberMd.copyWith(color: AppPalette.carbon);
+
+  static ThemeData _buildLightTheme() {
+    const scheme = ColorScheme.light(
+      primary: AppPalette.carbon,
+      onPrimary: AppPalette.white,
+      primaryContainer: AppPalette.surfaceControl,
+      onPrimaryContainer: AppPalette.carbon,
+      secondary: AppPalette.greyOlive,
+      onSecondary: AppPalette.carbon,
+      secondaryContainer: AppPalette.surfaceControl,
+      onSecondaryContainer: AppPalette.carbon,
+      tertiary: AppPalette.oliveInk,
+      onTertiary: AppPalette.white,
+      tertiaryContainer: AppPalette.surfaceSunken,
+      onTertiaryContainer: AppPalette.carbon,
+      surface: AppPalette.white,
+      onSurface: AppPalette.carbon,
+      onSurfaceVariant: AppPalette.ink70,
+      surfaceContainerLowest: AppPalette.white,
+      surfaceContainerLow: AppPalette.surfaceSunken,
+      surfaceContainer: AppPalette.surfaceControl,
+      surfaceContainerHigh: AppPalette.surfaceControl,
+      surfaceContainerHighest: AppPalette.surfaceControl,
+      surfaceTint: AppPalette.white,
+      error: AppPalette.carbon,
+      onError: AppPalette.white,
+      errorContainer: AppPalette.surfaceSunken,
+      onErrorContainer: AppPalette.carbon,
+      outline: AppPalette.lineStrong,
+      outlineVariant: AppPalette.line,
+      inverseSurface: AppPalette.carbon,
+      onInverseSurface: AppPalette.white,
+      inversePrimary: AppPalette.greyOlive,
+      shadow: AppPalette.carbon,
+      scrim: AppPalette.carbon,
+    );
+
+    final textTheme = TextTheme(
+      displayLarge: AppTypography.display,
+      displayMedium: AppTypography.display,
+      displaySmall: AppTypography.display,
+      headlineLarge: AppTypography.display,
+      headlineMedium: AppTypography.screenTitle,
+      headlineSmall: AppTypography.title,
+      titleLarge: AppTypography.title,
+      titleMedium: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
+      titleSmall: AppTypography.support.copyWith(fontWeight: FontWeight.w600),
+      bodyLarge: AppTypography.body,
+      bodyMedium: AppTypography.body,
+      bodySmall: AppTypography.support,
+      labelLarge: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
+      labelMedium: AppTypography.support,
+      labelSmall: AppTypography.micro,
+    ).apply(bodyColor: AppPalette.carbon, displayColor: AppPalette.carbon);
+
+    final controlShape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(AppRadii.control),
+    );
+    final fieldBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppRadii.control),
+      borderSide: const BorderSide(color: AppPalette.lineStrong),
+    );
+    const minControlSize = Size(AppSizing.minHitTarget, AppSizing.minHitTarget);
+    final baseButton = ButtonStyle(
+      minimumSize: const WidgetStatePropertyAll(minControlSize),
+      padding: const WidgetStatePropertyAll(
+        EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
+      ),
+      shape: WidgetStatePropertyAll(controlShape),
+      textStyle: WidgetStatePropertyAll(textTheme.labelLarge),
+      animationDuration: AppMotion.selection,
+      tapTargetSize: MaterialTapTargetSize.padded,
+    );
+
     return ThemeData(
-      scaffoldBackgroundColor: tailorChalk,
-      primaryColor: charcoalThread,
-      colorScheme: const ColorScheme.light(
-        primary: charcoalThread,
-        secondary: brassTape,
-        error: seamRed,
-        surface: Colors.white,
-      ),
-      textTheme: TextTheme(
-        // Display / headers (Zilla Slab)
-        displayLarge: GoogleFonts.zillaSlab(
-          color: charcoalThread,
-          fontWeight: FontWeight.w700,
-        ),
-        displayMedium: GoogleFonts.zillaSlab(
-          color: charcoalThread,
-          fontWeight: FontWeight.w600,
-        ),
-        displaySmall: GoogleFonts.zillaSlab(
-          color: charcoalThread,
-          fontWeight: FontWeight.w500,
-        ),
-        headlineMedium: GoogleFonts.zillaSlab(
-          color: charcoalThread,
-          fontWeight: FontWeight.w600,
-        ),
-        titleLarge: GoogleFonts.zillaSlab(
-          color: charcoalThread,
-          fontWeight: FontWeight.w600,
-        ),
-
-        // Body / UI (Noto Sans)
-        bodyLarge: GoogleFonts.notoSans(
-          color: charcoalThread,
-          fontWeight: FontWeight.w400,
-        ),
-        bodyMedium: GoogleFonts.notoSans(
-          color: charcoalThread,
-          fontWeight: FontWeight.w400,
-        ),
-        labelLarge: GoogleFonts.notoSans(
-          color: charcoalThread,
-          fontWeight: FontWeight.w600,
-        ),
-        bodySmall: GoogleFonts.notoSans(
-          color: inkMuted,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
+      useMaterial3: true,
+      fontFamily: AppTypography.fontFamily,
+      colorScheme: scheme,
+      textTheme: textTheme,
+      scaffoldBackgroundColor: AppPalette.white,
+      canvasColor: AppPalette.white,
+      disabledColor: AppPalette.ink45,
+      focusColor: AppPalette.oliveFill14,
+      hoverColor: AppPalette.oliveFill10,
+      highlightColor: AppPalette.oliveFill10,
+      splashColor: AppPalette.oliveFill14,
+      visualDensity: VisualDensity.standard,
+      materialTapTargetSize: MaterialTapTargetSize.padded,
       appBarTheme: AppBarTheme(
-        backgroundColor: charcoalThread,
-        foregroundColor: tailorChalk,
-        titleTextStyle: GoogleFonts.zillaSlab(
-          color: tailorChalk,
-          fontSize: 21,
-          fontWeight: FontWeight.w700,
-        ),
-        iconTheme: const IconThemeData(color: brassTape),
+        backgroundColor: AppPalette.white,
+        foregroundColor: AppPalette.carbon,
+        surfaceTintColor: AppPalette.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        titleTextStyle: textTheme.headlineMedium,
+        iconTheme: const IconThemeData(color: AppPalette.carbon),
+        actionsIconTheme: const IconThemeData(color: AppPalette.carbon),
       ),
       cardTheme: CardThemeData(
-        color: Colors.white,
+        color: AppPalette.white,
+        surfaceTintColor: AppPalette.white,
         elevation: 0,
+        margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(color: fabricGrey, width: 1),
+          borderRadius: BorderRadius.circular(AppRadii.card),
+          side: const BorderSide(color: AppPalette.line),
         ),
       ),
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: brassTape,
-        foregroundColor: charcoalThread,
-        elevation: 8, // ~ 0 8px 20px rgba(184,134,59,.45)
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: baseButton.copyWith(
+          elevation: const WidgetStatePropertyAll(0),
+          surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+          backgroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.disabled)
+                ? AppPalette.surfaceControl
+                : AppPalette.carbon,
+          ),
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.disabled)
+                ? AppPalette.ink45
+                : AppPalette.white,
+          ),
+          overlayColor: const WidgetStatePropertyAll(AppPalette.glassOnCarbon),
+        ),
       ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: Colors.white,
-        selectedItemColor: brassTape,
-        unselectedItemColor: inkMuted,
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: baseButton.copyWith(
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.disabled)
+                ? AppPalette.ink45
+                : AppPalette.carbon,
+          ),
+          side: WidgetStateProperty.resolveWith(
+            (states) => BorderSide(
+              color: states.contains(WidgetState.focused)
+                  ? AppPalette.carbon
+                  : AppPalette.lineStrong,
+              width: states.contains(WidgetState.focused) ? 2 : 1,
+            ),
+          ),
+          overlayColor: const WidgetStatePropertyAll(AppPalette.oliveFill10),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: baseButton.copyWith(
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.disabled)
+                ? AppPalette.ink45
+                : AppPalette.carbon,
+          ),
+          overlayColor: const WidgetStatePropertyAll(AppPalette.oliveFill10),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: const ButtonStyle(
+          minimumSize: WidgetStatePropertyAll(minControlSize),
+          overlayColor: WidgetStatePropertyAll(AppPalette.oliveFill14),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppPalette.white,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
+        labelStyle: AppTypography.support,
+        floatingLabelStyle: AppTypography.support.copyWith(
+          color: AppPalette.carbon,
+        ),
+        hintStyle: AppTypography.support,
+        helperStyle: AppTypography.support,
+        errorStyle: AppTypography.support.copyWith(color: AppPalette.carbon),
+        errorMaxLines: 3,
+        prefixIconColor: AppPalette.ink70,
+        suffixIconColor: AppPalette.ink70,
+        border: fieldBorder,
+        enabledBorder: fieldBorder,
+        disabledBorder: fieldBorder.copyWith(
+          borderSide: const BorderSide(color: AppPalette.line),
+        ),
+        focusedBorder: fieldBorder.copyWith(
+          borderSide: const BorderSide(color: AppPalette.carbon, width: 2),
+        ),
+        errorBorder: fieldBorder.copyWith(
+          borderSide: const BorderSide(color: AppPalette.carbon),
+        ),
+        focusedErrorBorder: fieldBorder.copyWith(
+          borderSide: const BorderSide(color: AppPalette.carbon, width: 2),
+        ),
+      ),
+      tabBarTheme: TabBarThemeData(
+        labelColor: AppPalette.carbon,
+        unselectedLabelColor: AppPalette.ink70,
+        indicatorColor: AppPalette.carbon,
+        dividerColor: AppPalette.line,
+        labelStyle: textTheme.labelLarge,
+        unselectedLabelStyle: textTheme.bodyMedium,
+        overlayColor: const WidgetStatePropertyAll(AppPalette.oliveFill10),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppPalette.white,
+        surfaceTintColor: AppPalette.white,
+        titleTextStyle: textTheme.titleLarge,
+        contentTextStyle: textTheme.bodyMedium,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadii.sheet),
+          side: const BorderSide(color: AppPalette.line),
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AppPalette.white,
+        modalBackgroundColor: AppPalette.white,
+        surfaceTintColor: AppPalette.white,
+        dragHandleColor: AppPalette.lineStrong,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppRadii.sheet),
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: AppPalette.carbon,
+        contentTextStyle: AppTypography.body.copyWith(color: AppPalette.white),
+        actionTextColor: AppPalette.white,
+        behavior: SnackBarBehavior.floating,
+        shape: controlShape,
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: AppPalette.carbon,
+        foregroundColor: AppPalette.white,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(AppRadii.control)),
+        ),
+      ),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: AppPalette.white,
+        selectedItemColor: AppPalette.carbon,
+        unselectedItemColor: AppPalette.ink70,
+        selectedLabelStyle: AppTypography.support.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: AppTypography.support,
         showUnselectedLabels: true,
         type: BottomNavigationBarType.fixed,
+        elevation: 0,
       ),
-      dividerTheme: const DividerThemeData(color: fabricGrey, thickness: 1),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: AppPalette.carbon,
+        linearTrackColor: AppPalette.surfaceControl,
+        circularTrackColor: AppPalette.surfaceControl,
+      ),
+      dividerTheme: const DividerThemeData(
+        color: AppPalette.line,
+        thickness: 1,
+      ),
+      textSelectionTheme: const TextSelectionThemeData(
+        cursorColor: AppPalette.carbon,
+        selectionColor: AppPalette.oliveFill14,
+        selectionHandleColor: AppPalette.carbon,
+      ),
     );
   }
-
-  // Helper text styles that are specific (Roboto Mono for data/numbers)
-  static TextStyle get numberStyle => GoogleFonts.robotoMono(
-    color: charcoalThread,
-    fontWeight: FontWeight.w500,
-  );
-
-  // Helper text style for Urdu (Noto Nastaliq Urdu)
-  static TextStyle get urduStyle => GoogleFonts.notoNastaliqUrdu(
-    color: charcoalThread,
-    fontWeight: FontWeight.w400,
-  );
 }

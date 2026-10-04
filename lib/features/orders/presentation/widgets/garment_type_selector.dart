@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tailor_khata/core/theme/app_colors.dart';
+import 'package:tailor_khata/core/theme/design_tokens.dart';
 
 class GarmentTypeSelector extends StatelessWidget {
   final String selectedGarment;
@@ -31,18 +31,18 @@ class GarmentTypeSelector extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.brassTape : Colors.white,
+              color: isSelected ? AppPalette.carbon : AppPalette.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isSelected ? AppColors.brassTape : AppColors.fabricGrey,
+                color: isSelected ? AppPalette.carbon : AppPalette.lineStrong,
               ),
             ),
             child: Text(
               garment,
               style: TextStyle(
-                fontFamily: 'Noto Sans',
+                fontFamily: AppTypography.fontFamily,
                 fontSize: 14,
-                color: isSelected ? Colors.white : AppColors.charcoalThread,
+                color: isSelected ? AppPalette.white : AppPalette.carbon,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
               ),
             ),

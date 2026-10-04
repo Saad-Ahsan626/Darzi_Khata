@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tailor_khata/core/theme/app_colors.dart';
+import 'package:tailor_khata/core/theme/design_tokens.dart';
 
 class OrderFilterTabs extends StatelessWidget {
   final int selectedIndex;
@@ -16,7 +16,7 @@ class OrderFilterTabs extends StatelessWidget {
     const tabs = ['All', 'Today', 'This Week', 'Overdue'];
 
     return Container(
-      color: AppColors.charcoalThread,
+      color: AppPalette.carbon,
       width: double.infinity,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -35,7 +35,7 @@ class OrderFilterTabs extends StatelessWidget {
                   border: Border(
                     bottom: BorderSide(
                       color: isActive
-                          ? AppColors.brassTape
+                          ? AppPalette.greyOlive
                           : Colors.transparent,
                       width: 3,
                     ),
@@ -45,9 +45,9 @@ class OrderFilterTabs extends StatelessWidget {
                   tabs[index],
                   style: TextStyle(
                     color: isActive
-                        ? AppColors.tailorChalk
-                        : AppColors.inkMuted,
-                    fontFamily: 'Noto Sans',
+                        ? AppPalette.white
+                        : AppPalette.onCarbonMuted,
+                    fontFamily: AppTypography.fontFamily,
                     fontSize: 14,
                     fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
                   ),
