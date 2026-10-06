@@ -4,5 +4,5 @@ class LocalDatabaseException implements Exception {
   LocalDatabaseException([this.message = 'A local database error occurred']);
 
   @override
-  String toString() => 'LocalDatabaseException: \$message';
+  String toString() => 'LocalDatabaseException: $message';
 }

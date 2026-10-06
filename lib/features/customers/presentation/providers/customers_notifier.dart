@@ -1,8 +1,12 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fpdart/fpdart.dart';
+import 'package:tailor_khata/core/error/failures.dart';
 import 'package:tailor_khata/core/usecase/usecase.dart';
 import 'package:tailor_khata/features/customers/domain/entities/customer.dart';
 import 'package:tailor_khata/features/customers/presentation/providers/customer_providers.dart';
+import 'package:tailor_khata/features/measurements/presentation/providers/measurements_notifier.dart';
+import 'package:tailor_khata/features/orders/presentation/providers/orders_notifier.dart';
 
 class CustomersNotifier extends AsyncNotifier<List<Customer>> {
   @override
@@ -19,41 +23,40 @@ class CustomersNotifier extends AsyncNotifier<List<Customer>> {
     );
   }
 
+  /// Reads the list again. The current list stays on screen meanwhile.
   Future<void> loadCustomers() async {
-    state = const AsyncValue.loading();
     state = await AsyncValue.guard(() => _fetchCustomers());
   }
 
-  Future<void> addCustomer(Customer customer) async {
+  /// Saves a new customer. Returns why it could not be saved, or null once
+  /// it is stored and the list is up to date.
+  Future<Failure?> addCustomer(Customer customer) async {
     final addCustomerUsecase = ref.read(addCustomerUsecaseProvider);
-    final result = await addCustomerUsecase(customer);
-    result.fold(
-      (failure) =>
-          state = AsyncValue.error(failure.message, StackTrace.current),
-      (_) => loadCustomers(),
-    );
+    return _finish(await addCustomerUsecase(customer));
   }
 
-  Future<void> updateCustomer(Customer customer) async {
+  /// Saves changes to a customer, with the same result as [addCustomer].
+  Future<Failure?> updateCustomer(Customer customer) async {
     final updateCustomerUsecase = ref.read(updateCustomerUsecaseProvider);
-    final result = await updateCustomerUsecase(customer);
-    result.fold(
-      (failure) =>
-          state = AsyncValue.error(failure.message, StackTrace.current),
-      (_) => loadCustomers(),
-    );
+    return _finish(await updateCustomerUsecase(customer));
   }
 
-  Future<void> deleteCustomer(String id) async {
+  /// Deletes a customer along with their measurements and orders.
+  Future<Failure?> deleteCustomer(String id) async {
     final deleteCustomerUsecase = ref.read(deleteCustomerUsecaseProvider);
-    final result = await deleteCustomerUsecase(id);
-    result.fold(
-      (failure) =>
-          state = AsyncValue.error(failure.message, StackTrace.current),
-      (_) {
-        loadCustomers();
-      },
-    );
+    final failure = await _finish(await deleteCustomerUsecase(id));
+    if (failure == null) {
+      // Their orders and measurements were removed with them.
+      ref.invalidate(ordersNotifierProvider);
+      ref.invalidate(measurementsNotifierProvider);
+    }
+    return failure;
+  }
+
+  Future<Failure?> _finish(Either<Failure, void> result) async {
+    final failure = result.getLeft().toNullable();
+    if (failure == null) await loadCustomers();
+    return failure;
   }
 }
 

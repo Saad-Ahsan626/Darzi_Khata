@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tailor_khata/core/dev/design_system_preview.dart';
+import 'package:tailor_khata/core/error/failures.dart';
 import 'package:tailor_khata/core/routing/app_router.dart';
 import 'package:tailor_khata/core/theme/app_theme.dart';
 import 'package:tailor_khata/core/theme/design_tokens.dart';
@@ -27,8 +28,9 @@ class _Customers extends CustomersNotifier {
   @override
   Future<List<Customer>> build() async => [_customer];
   @override
-  Future<void> updateCustomer(Customer customer) async {
+  Future<Failure?> updateCustomer(Customer customer) async {
     saved = customer;
+    return null;
   }
 }
 
@@ -284,7 +286,7 @@ void main() {
     await tester.pumpAndSettle();
     router.push('/customers/customer-1/edit', extra: _customer);
     await tester.pumpAndSettle();
-    expect(find.byType(TextFormField), findsNWidgets(3));
+    expect(find.byType(TextFormField), findsNWidgets(4));
     await tester.enterText(find.byType(TextFormField).first, 'Faisal Ahmed');
     await tester.ensureVisible(find.text('Save changes'));
     await tester.tap(find.text('Save changes'));

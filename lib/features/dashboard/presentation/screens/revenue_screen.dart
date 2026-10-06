@@ -58,9 +58,9 @@ class RevenueScreen extends ConsumerWidget {
           double thisYear = 0;
           double lifetime = 0;
 
-          // Cash received = advancePaid (summed by order creation date)
+          // Cash received = paidAmount (summed by order creation date)
           for (final order in orders) {
-            final advance = order.advancePaid;
+            final advance = order.paidAmount;
 
             if (advance > 0) {
               lifetime += advance;

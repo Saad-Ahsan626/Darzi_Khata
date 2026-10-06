@@ -6,7 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/core/widgets/app_widgets.dart';
+import 'package:tailor_khata/features/measurements/domain/entities/fit_profile.dart';
 import 'package:tailor_khata/features/measurements/domain/entities/measurement.dart';
+import 'package:tailor_khata/features/measurements/domain/entities/measurement_unit.dart';
 import 'package:tailor_khata/features/measurements/presentation/providers/measurements_notifier.dart';
 import 'package:tailor_khata/features/measurements/presentation/widgets/measurement_chip.dart';
 import 'package:tailor_khata/features/customers/presentation/providers/customers_notifier.dart';
@@ -23,7 +25,7 @@ class MeasurementScreen extends ConsumerStatefulWidget {
 class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
   Object? _model;
   String _activeGarment = 'Shalwar Kameez';
-  String _fitType = 'Formal Fit';
+  String _fitType = FitProfile.formal;
 
   final List<String> _garments = [
     'Shalwar Kameez',
@@ -53,14 +55,17 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
       return measurements.firstWhere(
         (m) =>
             m.customerId == widget.customerId &&
-            m.garmentType == _activeGarment,
+            m.garmentType == _activeGarment &&
+            m.fitProfile == _fitType,
       );
     } catch (_) {
       return null;
     }
   }
 
-  void _openBottomEditor(String key, String labelEn, String? currentValue) {
+  String? _display(double? inches) => inches == null ? null : '$inches"';
+
+  void _openBottomEditor(String key, String labelEn, double? currentValue) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -76,22 +81,30 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
     );
   }
 
-  void _saveMeasurement(String key, String value) {
+  /// Saves [inches] for [key] in the active profile; null clears the field.
+  void _saveMeasurement(String key, double? inches) {
     final measurementsAsync = ref.read(measurementsNotifierProvider);
     final measurements = measurementsAsync.value ?? [];
     Measurement? current = _getMeasurement(measurements);
 
-    Map<String, dynamic> data = current != null
-        ? Map.from(current.measurementData)
-        : {};
-    data[key] = value;
+    final data = <String, double>{...?current?.measurementData};
+    if (inches == null) {
+      data.remove(key);
+    } else {
+      data[key] = inches;
+    }
 
+    final now = DateTime.now();
     final newMeasurement = Measurement(
       id: current?.id ?? const Uuid().v4(),
       customerId: widget.customerId,
       garmentType: _activeGarment,
+      fitProfile: _fitType,
       measurementData: data,
-      createdAt: current?.createdAt ?? DateTime.now(),
+      unit: current?.unit ?? MeasurementUnit.inches,
+      note: current?.note,
+      createdAt: current?.createdAt ?? now,
+      updatedAt: now,
     );
 
     ref
@@ -112,7 +125,7 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
     final measurement = measurementsAsync.value != null
         ? _getMeasurement(measurementsAsync.value!)
         : null;
-    final data = measurement?.measurementData ?? {};
+    final data = measurement?.measurementData ?? const <String, double>{};
 
     return Scaffold(
       backgroundColor: AppPalette.white,
@@ -163,8 +176,14 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
               selected: _fitType,
               onChanged: (fit) => setState(() => _fitType = fit),
               options: const [
-                AppSelectionOption(value: 'Formal Fit', label: 'Formal fit'),
-                AppSelectionOption(value: 'Casual Fit', label: 'Casual fit'),
+                AppSelectionOption(
+                  value: FitProfile.formal,
+                  label: 'Formal fit',
+                ),
+                AppSelectionOption(
+                  value: FitProfile.casual,
+                  label: 'Casual fit',
+                ),
               ],
             ),
           ),
@@ -231,7 +250,7 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                       left: width * 0.2,
                       child: MeasurementChip(
                         labelEn: 'Neck',
-                        value: data['neck'],
+                        value: _display(data['neck']),
                         onTap: () =>
                             _openBottomEditor('neck', 'Neck', data['neck']),
                       ),
@@ -241,7 +260,7 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                       right: width * 0.12,
                       child: MeasurementChip(
                         labelEn: 'Chest',
-                        value: data['chest'],
+                        value: _display(data['chest']),
                         onTap: () =>
                             _openBottomEditor('chest', 'Chest', data['chest']),
                       ),
@@ -251,7 +270,7 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                       left: width * 0.12,
                       child: MeasurementChip(
                         labelEn: 'Waist',
-                        value: data['waist'],
+                        value: _display(data['waist']),
                         onTap: () =>
                             _openBottomEditor('waist', 'Waist', data['waist']),
                       ),
@@ -261,7 +280,7 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                       right: width * 0.12,
                       child: MeasurementChip(
                         labelEn: 'Hip',
-                        value: data['hip'],
+                        value: _display(data['hip']),
                         onTap: () =>
                             _openBottomEditor('hip', 'Hip', data['hip']),
                       ),
@@ -271,7 +290,7 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
                       left: width * 0.1,
                       child: MeasurementChip(
                         labelEn: 'Length',
-                        value: data['length'],
+                        value: _display(data['length']),
                         onTap: () => _openBottomEditor(
                           'length',
                           'Length',
@@ -292,8 +311,8 @@ class _MeasurementScreenState extends ConsumerState<MeasurementScreen> {
 
 class _MeasurementEditorSheet extends StatefulWidget {
   final String labelEn;
-  final String? initialValue;
-  final Function(String) onSave;
+  final double? initialValue;
+  final ValueChanged<double?> onSave;
 
   const _MeasurementEditorSheet({
     required this.labelEn,
@@ -313,9 +332,7 @@ class _MeasurementEditorSheetState extends State<_MeasurementEditorSheet> {
   @override
   void initState() {
     super.initState();
-    _value =
-        double.tryParse(widget.initialValue?.replaceAll('"', '') ?? '30') ??
-        30.0;
+    _value = widget.initialValue ?? 30.0;
     _controller = TextEditingController(text: _value.toStringAsFixed(1));
   }
 
@@ -451,7 +468,7 @@ class _MeasurementEditorSheetState extends State<_MeasurementEditorSheet> {
                     elevation: 0,
                   ),
                   onPressed: () {
-                    widget.onSave(''); // Clear the value
+                    widget.onSave(null); // Clear the value
                   },
                   child: const Text(
                     'Clear',
@@ -476,7 +493,7 @@ class _MeasurementEditorSheetState extends State<_MeasurementEditorSheet> {
                     elevation: 0,
                   ),
                   onPressed: () {
-                    widget.onSave('$_value"');
+                    widget.onSave(_value);
                   },
                   child: const Text(
                     'Done',

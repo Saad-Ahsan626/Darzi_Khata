@@ -1,4 +1,3 @@
-import 'package:sqflite/sqflite.dart';
 import 'package:tailor_khata/core/database/database_helper.dart';
 import 'package:tailor_khata/core/database/database_schema.dart';
 import 'package:tailor_khata/core/error/exceptions.dart';
@@ -69,11 +68,18 @@ class MeasurementLocalDataSourceImpl implements MeasurementLocalDataSource {
   Future<void> saveMeasurement(MeasurementModel measurement) async {
     try {
       final db = await dbHelper.database;
-      await db.insert(
+      final values = measurement.toJson();
+      // Updating in place keeps orders linked to the profile. A replacing
+      // insert deletes the old row first, which clears those links.
+      final updated = await db.update(
         DatabaseSchema.measurementsTable,
-        measurement.toJson(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        values,
+        where: 'id = ?',
+        whereArgs: [measurement.id],
       );
+      if (updated == 0) {
+        await db.insert(DatabaseSchema.measurementsTable, values);
+      }
     } catch (e) {
       throw LocalDatabaseException('Failed to save measurement: $e');
     }

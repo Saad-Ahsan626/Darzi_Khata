@@ -11,7 +11,10 @@ import 'package:tailor_khata/features/customers/presentation/providers/customers
 import 'package:tailor_khata/features/orders/presentation/widgets/garment_type_selector.dart';
 
 class NewEditOrderScreen extends ConsumerStatefulWidget {
-  const NewEditOrderScreen({super.key});
+  const NewEditOrderScreen({super.key, this.initialCustomerId});
+
+  /// Customer to preselect when the order is started from a customer's page.
+  final String? initialCustomerId;
 
   @override
   ConsumerState<NewEditOrderScreen> createState() => _NewEditOrderScreenState();
@@ -30,6 +33,7 @@ class _NewEditOrderScreenState extends ConsumerState<NewEditOrderScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedCustomerId = widget.initialCustomerId;
     _priceController.addListener(() => setState(() {}));
     _advanceController.addListener(() => setState(() {}));
   }
@@ -69,8 +73,8 @@ class _NewEditOrderScreenState extends ConsumerState<NewEditOrderScreen> {
       status: _selectedStatus,
       deliveryDate: _deliveryDate,
       totalAmount: double.parse(_priceController.text),
-      advancePaid: double.tryParse(_advanceController.text) ?? 0.0,
-      notes: _fabricController.text,
+      paidAmount: double.tryParse(_advanceController.text) ?? 0.0,
+      fabric: _fabricController.text,
       createdAt: DateTime.now(),
     );
 
@@ -134,8 +138,9 @@ class _NewEditOrderScreenState extends ConsumerState<NewEditOrderScreen> {
                       'No customers available. Please add one first.',
                     );
                   }
-                  // Default selection
-                  if (_selectedCustomerId == null && customers.isNotEmpty) {
+                  // Default selection, also used when the preselected
+                  // customer no longer exists.
+                  if (!customers.any((c) => c.id == _selectedCustomerId)) {
                     _selectedCustomerId = customers.first.id;
                   }
                   return Container(

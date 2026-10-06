@@ -16,7 +16,7 @@ class DashboardDeliveryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final balance = order.totalAmount - order.advancePaid;
+    final balance = order.totalAmount - order.paidAmount;
     final isPaid = balance <= 0;
 
     return GestureDetector(

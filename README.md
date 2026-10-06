@@ -14,13 +14,13 @@ screens are being redesigned incrementally in the following phases.
 
 | Area | Implemented | Remaining work |
 | --- | --- | --- |
-| Startup | Splash, onboarding, guest entry | Persist guest choice; redesigned screens |
-| Customers | Add/edit, search, optional photos, details, order history | Redesigned screens and deletion UI |
-| Measurements | Save values per customer and garment | Replace 3D viewer with grouped fields; separate fit profiles and convert units |
-| Orders | Create, due-date filters, status changes, delivery/payment confirmation | General editing, measurement linking, payment correctness |
+| Startup | Animated splash that opens the database, onboarding, guest entry | Persist guest choice; redesigned onboarding and welcome |
+| Customers | Redesigned list, add/edit, customer page and delete; search, photos, notes, measurement profiles, order history | Filter on the order history |
+| Measurements | Save numeric values per customer, garment and fit profile | Replace 3D viewer with grouped fields; unit switch, notes and garment field templates |
+| Orders | Create, due-date filters, status changes, delivery/payment confirmation; stored order numbers, payments and status history | Screens for payments, history, order numbers and pieces; general editing; measurement linking |
 | Dashboard/revenue | Delivery list, balances, period summaries | New layouts and payment-date-based reporting |
 | Design foundation | Tokens, Material theme, offline fonts, component library, glass navigation, debug preview | Full feature-screen layouts |
-| Login/settings | Placeholder screens | Authentication, shop settings, language/unit preferences |
+| Login/settings | Placeholder screens; stored shop settings | Authentication, settings screen, language/unit preferences |
 | WhatsApp | Buttons with placeholder feedback | Actual prepared-conversation integration |
 | Invoices/backup/cloud | Planned | Export, restore, accounts, synchronization |
 
@@ -84,8 +84,8 @@ lib/
     settings/
 ```
 
-Customers, measurements, and orders have `domain`, `data`, and `presentation`
-directories. The Clean Architecture responsibilities are:
+Customers, measurements, orders, and settings have `domain`, `data`, and
+`presentation` directories. The Clean Architecture responsibilities are:
 
 - **Domain:** entities, repository contracts, use cases, and business rules.
   This layer must not depend on Flutter widgets or SQLite APIs.
@@ -105,7 +105,8 @@ Screen -> Notifier -> Use case -> Repository contract
 
 Existing gaps: the active measurement notifier directly uses its data source;
 dashboard calculations live in widgets. These should move behind domain operations
-during feature work. Auth/settings have presentation placeholders.
+during feature work. Auth has presentation placeholders; settings has storage
+and providers behind a placeholder screen.
 
 Theme/token files under `core` are shared **presentation** dependencies. Domain
 and data code must not import the theme or Flutter-specific design values.
@@ -141,6 +142,15 @@ entry, and measurement routes use the full viewport. Keyboard visibility hides
 the navigation. Its layout reserves space for lists and bottom safe areas; add
 actions are in the Customers and Orders headers and empty states.
 
+Redesigned screens draw their own headers instead of an app bar. Status-bar
+icons are dark by default (set in `main.dart`); the splash and carbon headers
+switch them to light.
+
+The splash plays once: the button mark is sewn on over 1.2 seconds and the
+screen fades to onboarding or the welcome screen. It opens the database
+meanwhile, shows a progress sweep only if that takes longer than 400ms, and
+with reduced motion shows the finished mark immediately.
+
 Glass has a bounded blur, fine borders, and solid light/dark fallbacks. High
 contrast uses opaque surfaces automatically; callers can disable blur explicitly.
 Custom selection/navigation transitions respect reduced motion.
@@ -170,11 +180,36 @@ Tracked Dart tokens are the implementation source of truth.
 
 ## Persistence and dependencies
 
-`DatabaseHelper` opens `tailor_khata.db` at schema version **3**, with foreign keys
-enabled. Its tables are `customers`, `measurements`, and `orders`. Measurements
-contain a JSON value map; orders contain status, amounts, due dates, and an optional
-measurement reference. Customer deletion cascades to measurements/orders;
-measurement deletion clears an order's measurement reference.
+`DatabaseHelper` opens `tailor_khata.db` at schema version **4**, with foreign keys
+enabled. Existing databases are upgraded in place by
+`core/database/database_migrations.dart`.
+
+| Table | Contents |
+| --- | --- |
+| `customers` | Name, phone, address, photo path, optional note |
+| `measurements` | One profile per customer, garment and fit (Formal/Casual): a JSON map of field to inches, the unit it is shown in, a stitching note, last update |
+| `orders` | Order number, garment, pieces, fabric, cutter note, due date, total, optional measurement reference; current status and paid total |
+| `payments` | One row per payment: amount, method (cash, bank, Easypaisa), date, whether it was the advance |
+| `order_status_events` | One row each time an order enters a stage, with the time |
+| `shop_settings` | A single row: shop name, owner, phone, address, hours, order prefix, next order number, default unit |
+
+Measurement values are stored in inches whichever unit a profile is shown in.
+An order's `status` and paid total (the `advancePaid` column) repeat the latest
+status event and the sum of its payments. They change only through the
+operations that also write those rows: change status, deliver, record payment
+and delete payment. Editing an order's details does not touch them. Order
+numbers come from a counter in `shop_settings` and are not reused after a
+deletion; `ShopSettings.orderLabel` formats them as `TK-0042`.
+
+Customer deletion cascades to measurements/orders; order deletion cascades to
+payments and status events; measurement deletion clears an order's measurement
+reference.
+
+When version 3 data is upgraded, measurement text such as `40.5"` becomes
+numbers in a Formal Fit profile, the old order notes become the fabric, orders
+are numbered by creation date, and each order's paid amount becomes one cash
+payment dated at order creation. Only creation and delivery times were
+recorded before, so earlier stages in the history carry the creation time.
 
 Photos are files in the app's documents directory. `shared_preferences` stores
 onboarding completion. `ownerId`/`syncStatus` reserve fields for future cloud work;
@@ -195,7 +230,13 @@ not yet available.
 
 ```sh
 flutter analyze --no-pub
-flutter test --no-pub test/presentation_foundation_test.dart
+flutter test --no-pub \
+  test/presentation_foundation_test.dart test/splash_screen_test.dart \
+  test/customer_screens_test.dart test/customer_activity_test.dart \
+  test/customer_repository_test.dart test/order_flow_test.dart \
+  test/order_repository_test.dart test/measurement_screen_test.dart \
+  test/measurement_repository_test.dart test/shop_settings_repository_test.dart \
+  test/database_migration_test.dart
 ```
 
 The tracked foundation tests use in-memory provider fixtures, bundled fonts, and
@@ -203,22 +244,49 @@ the real app routes. They verify navigation/add/back behavior, keyboard and safe
 areas, fields, disabled/loading buttons, glass fallbacks, 360/390px widths with
 larger text, and preservation of stored customer names during English edits.
 
+The order flow tests use the same fixtures. They verify that the order screen
+asks for a stage change, a delivery or a payment as separate operations, and
+that an order started from a customer's page is saved for that customer. The
+measurement screen test verifies that Formal and Casual fits show and save
+their own values.
+
+The customer tests cover the list (A–Z order, status lines, search, empty and
+no-match states), the form (required name and 11-digit phone, a save that
+waits for storage, the failure sheet and retry), the customer page (summary,
+measurement profiles, order history) and deletion. They also run the screens
+at 360px with larger text. The activity test covers the rules behind each
+customer's status line. The splash test covers the drawing sequence, the wait
+for slow storage, reduced motion and the retry after a failure.
+
+The database tests run against SQLite through `sqflite_common_ffi`, each on its
+own temporary file opened with `DatabaseHelper.atPath`. The migration test
+builds a version 3 database, upgrades it, and checks the converted data and
+that the structure matches a newly created database. The repository tests cover
+order numbering, status history, payments, delivery, editing, measurement
+profiles, shop settings, the customer note, and that deleting a customer also
+clears their orders and measurements from the lists the screens hold.
+
 Two older database tests may exist locally under `test/`; they remain ignored by
 Git. They use a persistent database and a fixed customer ID, so the insertion
 test can fail on repeated runs. Use the explicit test command above for repeatable
-foundation checks. Isolated database and broader feature tests are still needed.
+checks. Screen tests for orders, the dashboard and settings are still needed.
 
 Important existing issues for subsequent feature work:
 
-- Production-status updates can overwrite the paid amount with the order total.
-- Revenue is attributed to order creation dates rather than payment dates.
-- Some saves show success before persistence completes.
-- Formal/Casual selection shares one measurement record; values are formatted
-  strings rather than canonical numbers.
-- New-order customer preselection and measurement linking are incomplete.
+- The dashboard and revenue screens still total paid amounts by order creation
+  date; payment dates are stored but not yet used there.
+- Order and measurement saves show success before persistence completes;
+  customer saves wait for it.
+- Pieces, payment method and history, status times and shop settings are
+  stored but have no screens yet. Order numbers appear only in a customer's
+  order history.
+- The customer page's "Add Measurements" opens the existing 3D measurement
+  screen until its replacement.
+- New orders do not link a measurement record.
 - WhatsApp feedback does not send a message.
 
 These are feature/data-flow tasks; theme integration does not change their logic.
-Phase 1's visual foundation is implemented. The remaining phases are dashboard,
-customer workflow, form-based measurements, orders/payments, remaining screens,
-and complete end-to-end verification.
+Phase 1's visual foundation, the version 4 data model, the customer workflow
+and the animated splash are implemented. The remaining phases are dashboard,
+form-based measurements, orders/payments, remaining screens, and complete
+end-to-end verification.

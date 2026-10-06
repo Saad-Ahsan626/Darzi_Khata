@@ -65,7 +65,7 @@ class DashboardScreen extends ConsumerWidget {
           // "This Month" revenue based on actual cash collected for orders created this month
           double monthRevenue = 0;
           for (var order in orders) {
-            final advance = order.advancePaid;
+            final advance = order.paidAmount;
             if (advance > 0 &&
                 order.createdAt.year == now.year &&
                 order.createdAt.month == now.month) {
@@ -77,7 +77,7 @@ class DashboardScreen extends ConsumerWidget {
           double pendingTotal = 0;
           Set<String> pendingCustomers = {};
           for (var order in orders) {
-            final balance = order.totalAmount - order.advancePaid;
+            final balance = order.totalAmount - order.paidAmount;
             if (balance > 0) {
               pendingTotal += balance;
               pendingCustomers.add(order.customerId);

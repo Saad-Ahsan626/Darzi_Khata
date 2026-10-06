@@ -8,6 +8,7 @@ Feature widgets translate their business state into labels and visual variants.
 | Component | Use |
 | --- | --- |
 | `AppButton` / `AppIconButton` | Primary, outlined, olive, destructive, text, loading, disabled and named icon actions |
+| `AppBoxedIconButton` | Bordered header actions (back, edit, more) on light or carbon backgrounds |
 | `AppTextField` | Persistent label, text/phone/amount/search inputs, helper text and caller validation |
 | `AppDateField` | A labeled date picker; caller owns the value |
 | `AppCard` | White, carbon and selected surfaces; optional tap callback |
@@ -16,6 +17,7 @@ Feature widgets translate their business state into labels and visual variants.
 | `AppStatusBadge` | Status/payment label, optional icon and visual tone |
 | `AppSectionLabel` / `AppMoneyText` / `AppSeparator` | Section hierarchy, tabular Rs amounts and separation |
 | `AppFeedback` / `AppLoading` | Empty, error, retry and loading states |
+| `AppDashedLine` / `AppDashedBox` / `AppTickPattern` / `AppIconTile` | Dashed rules and outlines, tape-tick texture for carbon surfaces, and the icon tile that heads empty states, sheets and dialogs |
 | `AppBottomNavigation` | Destinations and selection supplied by the shell |
 
 ```dart

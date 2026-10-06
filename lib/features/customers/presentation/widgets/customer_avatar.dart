@@ -4,97 +4,120 @@ import 'package:path_provider/path_provider.dart';
 import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/features/customers/domain/entities/customer.dart';
 
-class CustomerAvatar extends StatelessWidget {
+/// Customer photos are files in the app's documents directory, stored on the
+/// customer by file name.
+Future<File> customerPhotoFile(String fileName) async {
+  final directory = await getApplicationDocumentsDirectory();
+  return File('${directory.path}/$fileName');
+}
+
+/// Up to two initials: the first letters of the first and last words.
+String customerInitials(String name) {
+  final words = name.trim().split(RegExp(r'\s+'))
+    ..removeWhere((word) => word.isEmpty);
+  if (words.isEmpty) return '?';
+  final first = words.first.characters.first;
+  final last = words.length > 1 ? words.last.characters.first : '';
+  return '$first$last'.toUpperCase();
+}
+
+enum CustomerAvatarTone {
+  /// No open work or balance.
+  quiet,
+
+  /// Has open orders or money owed.
+  active,
+
+  /// Shown on a carbon header.
+  onCarbon,
+}
+
+/// A round avatar showing the customer's photo, or their initials.
+class CustomerAvatar extends StatefulWidget {
   final Customer customer;
   final double size;
-  final double radius;
-  final double fontSize;
+  final CustomerAvatarTone tone;
 
   const CustomerAvatar({
     super.key,
     required this.customer,
-    this.size = 48,
-    this.radius = 12,
-    this.fontSize = 20,
+    this.size = 46,
+    this.tone = CustomerAvatarTone.quiet,
   });
 
-  Color _getAvatarColor(String id) {
-    // Generate a consistent color based on the customer ID
-    final colors = [
-      AppPalette.carbon,
-      AppPalette.carbon,
-      AppPalette.carbon,
-      AppPalette.ink70,
-    ];
-    final int hash = id.hashCode;
-    return colors[hash % colors.length];
+  @override
+  State<CustomerAvatar> createState() => _CustomerAvatarState();
+}
+
+class _CustomerAvatarState extends State<CustomerAvatar> {
+  late Future<File?> _photo = _findPhoto();
+
+  @override
+  void didUpdateWidget(CustomerAvatar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.customer.imagePath != widget.customer.imagePath) {
+      _photo = _findPhoto();
+    }
   }
 
-  String _getInitial() {
-    if (customer.name.trim().isNotEmpty) {
-      return customer.name.trim().substring(0, 1).toUpperCase();
-    }
-    return '?';
-  }
-
-  Future<File?> _getImageFile() async {
-    if (customer.imagePath == null || customer.imagePath!.isEmpty) return null;
-    final dir = await getApplicationDocumentsDirectory();
-    final file = File('${dir.path}/${customer.imagePath}');
-    if (await file.exists()) {
-      return file;
-    }
-    return null;
+  Future<File?> _findPhoto() async {
+    final fileName = widget.customer.imagePath;
+    if (fileName == null || fileName.isEmpty) return null;
+    final file = await customerPhotoFile(fileName);
+    return await file.exists() ? file : null;
   }
 
   @override
   Widget build(BuildContext context) {
-    if (customer.imagePath != null && customer.imagePath!.isNotEmpty) {
-      return FutureBuilder<File?>(
-        future: _getImageFile(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return _buildFallback();
-          }
-          if (snapshot.hasData && snapshot.data != null) {
-            return Container(
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(radius),
-                image: DecorationImage(
-                  image: FileImage(snapshot.data!),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            );
-          }
-          return _buildFallback();
-        },
-      );
-    }
-
-    return _buildFallback();
-  }
-
-  Widget _buildFallback() {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: _getAvatarColor(customer.id),
-        borderRadius: BorderRadius.circular(radius),
+    final (fill, border, ink) = switch (widget.tone) {
+      CustomerAvatarTone.quiet => (
+        AppPalette.surfaceControl,
+        AppPalette.line,
+        AppPalette.ink70,
       ),
-      alignment: Alignment.center,
-      child: Text(
-        _getInitial(),
-        style: TextStyle(
-          color: AppPalette.white,
-          fontFamily: AppTypography.fontFamily,
-          fontSize: fontSize,
-          fontWeight: FontWeight.w600,
-        ),
+      CustomerAvatarTone.active => (
+        AppPalette.oliveFill14,
+        AppPalette.oliveBorder,
+        AppPalette.oliveInk,
       ),
+      CustomerAvatarTone.onCarbon => (
+        AppPalette.glassOnCarbon,
+        AppPalette.glassBorder,
+        AppPalette.white,
+      ),
+    };
+    return FutureBuilder<File?>(
+      future: _photo,
+      builder: (context, snapshot) {
+        final photo = snapshot.data;
+        return Container(
+          width: widget.size,
+          height: widget.size,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: fill,
+            border: Border.all(color: border),
+            image: photo == null
+                ? null
+                : DecorationImage(image: FileImage(photo), fit: BoxFit.cover),
+          ),
+          child: photo == null
+              ? ExcludeSemantics(
+                  child: Text(
+                    customerInitials(widget.customer.name),
+                    textScaler: TextScaler.noScaling,
+                    style: TextStyle(
+                      fontFamily: AppTypography.fontFamily,
+                      fontSize: widget.size * 0.32,
+                      fontWeight: FontWeight.w600,
+                      color: ink,
+                    ),
+                  ),
+                )
+              : null,
+        );
+      },
     );
   }
 }

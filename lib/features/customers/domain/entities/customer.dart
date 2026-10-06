@@ -7,6 +7,7 @@ class Customer extends Equatable {
   final String? phone;
   final String? address;
   final String? imagePath;
+  final String? note;
   final DateTime createdAt;
   final String ownerId;
   final int syncStatus;
@@ -18,6 +19,7 @@ class Customer extends Equatable {
     this.phone,
     this.address,
     this.imagePath,
+    this.note,
     required this.createdAt,
     this.ownerId = 'guest',
     this.syncStatus = 0,
@@ -31,6 +33,7 @@ class Customer extends Equatable {
         phone,
         address,
         imagePath,
+        note,
         createdAt,
         ownerId,
         syncStatus,

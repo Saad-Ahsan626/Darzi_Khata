@@ -33,7 +33,7 @@ class OrderCard extends ConsumerWidget {
         break;
     }
 
-    final balance = order.totalAmount - order.advancePaid;
+    final balance = order.totalAmount - order.paidAmount;
     final isPaid = balance <= 0;
 
     final customersAsync = ref.watch(customersNotifierProvider);

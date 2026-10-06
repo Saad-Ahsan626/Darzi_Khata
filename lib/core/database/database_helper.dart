@@ -1,12 +1,19 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:tailor_khata/core/database/database_migrations.dart';
 import 'package:tailor_khata/core/database/database_schema.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
-  static Database? _database;
 
-  DatabaseHelper._init();
+  final String? _path;
+  Database? _database;
+
+  DatabaseHelper._init([this._path]);
+
+  /// A helper for the database file at [path], used by tests to work on an
+  /// isolated database instead of the app's own.
+  factory DatabaseHelper.atPath(String path) => DatabaseHelper._init(path);
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -15,12 +22,11 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDB(String filePath) async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, filePath);
+    final path = _path ?? join(await getDatabasesPath(), filePath);
 
     return await openDatabase(
       path,
-      version: 3,
+      version: DatabaseSchema.version,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
       onConfigure: _onConfigure,
@@ -32,9 +38,9 @@ class DatabaseHelper {
   }
 
   Future<void> _createDB(Database db, int version) async {
-    await db.execute(DatabaseSchema.createCustomersTable);
-    await db.execute(DatabaseSchema.createMeasurementsTable);
-    await db.execute(DatabaseSchema.createOrdersTable);
+    for (final statement in DatabaseSchema.createStatements) {
+      await db.execute(statement);
+    }
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -46,11 +52,13 @@ class DatabaseHelper {
     if (oldVersion < 3) {
       await db.execute("ALTER TABLE ${DatabaseSchema.ordersTable} ADD COLUMN deliveredAt INTEGER;");
     }
+    if (oldVersion < 4) {
+      await DatabaseMigrations.toV4(db);
+    }
   }
 
   Future<void> close() async {
-    final db = await instance.database;
-    db.close();
+    await _database?.close();
+    _database = null;
   }
 }
-

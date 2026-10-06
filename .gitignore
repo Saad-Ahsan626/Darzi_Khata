@@ -46,8 +46,9 @@ app.*.map.json
 /idea
 /.idea
 /macos
-/test/*
-!/test/presentation_foundation_test.dart
+# Legacy database tests write to a persistent local database
+/test/database_test.dart
+/test/database_integration_test.dart
 /linux
 /web
 /windows

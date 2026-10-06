@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/core/dev/design_system_preview.dart';
 import 'package:tailor_khata/core/shell/app_shell.dart';
 import 'package:tailor_khata/features/auth/presentation/screens/splash_screen.dart';
@@ -34,13 +36,16 @@ GoRouter createAppRouter({String? initialLocation}) => GoRouter(
       ),
     // Auth Routes
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
+    // The splash fades itself out, so the screens it hands off to fade in.
     GoRoute(
       path: '/onboarding',
-      builder: (context, state) => const OnboardingScreen(),
+      pageBuilder: (context, state) =>
+          _fadePage(context, state, const OnboardingScreen()),
     ),
     GoRoute(
       path: '/welcome',
-      builder: (context, state) => const WelcomeScreen(),
+      pageBuilder: (context, state) =>
+          _fadePage(context, state, const WelcomeScreen()),
     ),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
 
@@ -66,7 +71,10 @@ GoRouter createAppRouter({String? initialLocation}) => GoRouter(
           routes: [
             GoRoute(
               path: 'new',
-              builder: (context, state) => const AddEditCustomerScreen(),
+              builder: (context, state) => AddEditCustomerScreen(
+                initialName: state.uri.queryParameters['name'],
+                initialPhone: state.uri.queryParameters['phone'],
+              ),
             ),
             GoRoute(
               path: ':id',
@@ -97,7 +105,9 @@ GoRouter createAppRouter({String? initialLocation}) => GoRouter(
           routes: [
             GoRoute(
               path: 'new',
-              builder: (context, state) => const NewEditOrderScreen(),
+              builder: (context, state) => NewEditOrderScreen(
+                initialCustomerId: state.uri.queryParameters['customerId'],
+              ),
             ),
             GoRoute(
               path: ':id',
@@ -113,3 +123,18 @@ GoRouter createAppRouter({String? initialLocation}) => GoRouter(
     ),
   ],
 );
+
+Page<void> _fadePage(BuildContext context, GoRouterState state, Widget child) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: MediaQuery.disableAnimationsOf(context)
+        ? Duration.zero
+        : AppMotion.page,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+        FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: AppMotion.curve),
+          child: child,
+        ),
+  );
+}

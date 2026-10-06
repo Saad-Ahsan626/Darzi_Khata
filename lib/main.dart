@@ -37,6 +37,12 @@ class TailorKhataApp extends StatelessWidget {
       supportedLocales: const [Locale('en')],
 
       routerConfig: goRouter,
+      // Screens are white unless they say otherwise, so status-bar icons are
+      // dark by default; carbon headers and the splash switch them to light.
+      builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.dark,
+        child: child!,
+      ),
     );
   }
 }

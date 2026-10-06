@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tailor_khata/core/theme/design_tokens.dart';
-import 'package:tailor_khata/features/orders/domain/entities/order.dart'
-    as order_entity;
+import 'package:tailor_khata/features/orders/domain/entities/payment.dart';
 import 'package:tailor_khata/features/orders/presentation/providers/orders_notifier.dart';
 import 'package:tailor_khata/features/customers/presentation/providers/customers_notifier.dart';
 import 'package:tailor_khata/features/orders/presentation/widgets/status_stepper.dart';
@@ -219,8 +218,8 @@ class OrderDetailScreen extends ConsumerWidget {
                                     ),
                                   ),
                                   Text(
-                                    order.notes?.isNotEmpty == true
-                                        ? order.notes!
+                                    order.fabric?.isNotEmpty == true
+                                        ? order.fabric!
                                         : 'Not specified',
                                     style: const TextStyle(
                                       color: AppPalette.carbon,
@@ -261,15 +260,15 @@ class OrderDetailScreen extends ConsumerWidget {
                                   Expanded(
                                     child: _buildFinancialColumn(
                                       'Advance',
-                                      'Rs ${order.advancePaid}',
+                                      'Rs ${order.paidAmount}',
                                       AppPalette.carbon,
                                     ),
                                   ),
                                   Expanded(
                                     child: _buildFinancialColumn(
                                       'Balance',
-                                      'Rs ${order.totalAmount - order.advancePaid}',
-                                      (order.totalAmount - order.advancePaid) <=
+                                      'Rs ${order.totalAmount - order.paidAmount}',
+                                      (order.totalAmount - order.paidAmount) <=
                                               0
                                           ? AppPalette.oliveInk
                                           : AppPalette.carbon,
@@ -286,51 +285,36 @@ class OrderDetailScreen extends ConsumerWidget {
                       StatusStepper(
                         currentStatus: order.status,
                         onStatusChanged: (newStatus) async {
-                          int paymentResult =
-                              2; // Default assume paid or no balance
-                          if (newStatus == 'Delivered') {
-                            final balance =
-                                order.totalAmount - order.advancePaid;
-                            final confirmed = await _showDeliveryConfirmation(
-                              context,
-                              balance,
-                            );
-                            if (confirmed == null || confirmed == 0) return;
-                            paymentResult = confirmed;
-                          }
-                          final updatedOrder = order_entity.Order(
-                            id: order.id,
-                            customerId: order.customerId,
-                            measurementId: order.measurementId,
-                            garmentType: order.garmentType,
-                            status: newStatus,
-                            deliveryDate: order.deliveryDate,
-                            totalAmount: order.totalAmount,
-                            advancePaid: paymentResult == 2
-                                ? order.totalAmount
-                                : order.advancePaid,
-                            notes: order.notes,
-                            createdAt: order.createdAt,
-                            deliveredAt: newStatus == 'Delivered'
-                                ? DateTime.now()
-                                : order.deliveredAt,
-                            ownerId: order.ownerId,
-                            syncStatus: order.syncStatus,
+                          final orders = ref.read(
+                            ordersNotifierProvider.notifier,
                           );
-                          ref
-                              .read(ordersNotifierProvider.notifier)
-                              .updateOrder(updatedOrder);
+                          // Production stages never change the paid amount;
+                          // only a delivery confirmed as paid settles it.
+                          if (newStatus != 'Delivered') {
+                            orders.changeStatus(order.id, newStatus);
+                            return;
+                          }
+                          final balance = order.totalAmount - order.paidAmount;
+                          final confirmed = await _showDeliveryConfirmation(
+                            context,
+                            balance,
+                          );
+                          if (confirmed == null || confirmed == 0) return;
+                          orders.deliverOrder(
+                            order.id,
+                            settleBalance: confirmed == 2,
+                          );
                         },
                       ),
                       const SizedBox(height: 32),
 
                       // If order is Delivered but still has a balance, show Collect Payment button
                       if (order.status == 'Delivered' &&
-                          (order.totalAmount - order.advancePaid) > 0)
+                          (order.totalAmount - order.paidAmount) > 0)
                         ElevatedButton(
                           onPressed: () async {
                             final balance =
-                                order.totalAmount - order.advancePaid;
+                                order.totalAmount - order.paidAmount;
                             final confirmed = await showDialog<bool>(
                               context: context,
                               builder: (ctx) => AlertDialog(
@@ -371,25 +355,13 @@ class OrderDetailScreen extends ConsumerWidget {
                             );
 
                             if (confirmed == true) {
-                              final updatedOrder = order_entity.Order(
-                                id: order.id,
-                                customerId: order.customerId,
-                                measurementId: order.measurementId,
-                                garmentType: order.garmentType,
-                                status: order.status,
-                                deliveryDate: order.deliveryDate,
-                                totalAmount: order.totalAmount,
-                                advancePaid: order.totalAmount, // Clear the due
-                                notes: order.notes,
-                                createdAt: order.createdAt,
-                                deliveredAt:
-                                    DateTime.now(), // Update time of final payment
-                                ownerId: order.ownerId,
-                                syncStatus: order.syncStatus,
-                              );
                               ref
                                   .read(ordersNotifierProvider.notifier)
-                                  .updateOrder(updatedOrder);
+                                  .recordPayment(
+                                    order.id,
+                                    balance,
+                                    PaymentMethod.cash,
+                                  );
                             }
                           },
                           style: ElevatedButton.styleFrom(
@@ -412,40 +384,26 @@ class OrderDetailScreen extends ConsumerWidget {
                         ),
 
                       if (order.status == 'Delivered' &&
-                          (order.totalAmount - order.advancePaid) > 0)
+                          (order.totalAmount - order.paidAmount) > 0)
                         const SizedBox(height: 12),
 
                       if (order.status != 'Delivered')
                         ElevatedButton(
                           onPressed: () async {
                             final balance =
-                                order.totalAmount - order.advancePaid;
+                                order.totalAmount - order.paidAmount;
                             final confirmed = await _showDeliveryConfirmation(
                               context,
                               balance,
                             );
                             if (confirmed == null || confirmed == 0) return;
 
-                            final updatedOrder = order_entity.Order(
-                              id: order.id,
-                              customerId: order.customerId,
-                              measurementId: order.measurementId,
-                              garmentType: order.garmentType,
-                              status: 'Delivered',
-                              deliveryDate: order.deliveryDate,
-                              totalAmount: order.totalAmount,
-                              advancePaid: confirmed == 2
-                                  ? order.totalAmount
-                                  : order.advancePaid,
-                              notes: order.notes,
-                              createdAt: order.createdAt,
-                              deliveredAt: DateTime.now(),
-                              ownerId: order.ownerId,
-                              syncStatus: order.syncStatus,
-                            );
                             ref
                                 .read(ordersNotifierProvider.notifier)
-                                .updateOrder(updatedOrder);
+                                .deliverOrder(
+                                  order.id,
+                                  settleBalance: confirmed == 2,
+                                );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppPalette.carbon,

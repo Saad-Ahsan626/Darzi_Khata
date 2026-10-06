@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-
+import '../formatting/app_formats.dart';
 import '../theme/design_tokens.dart';
 
 class AppSectionLabel extends StatelessWidget {
@@ -22,7 +21,7 @@ class AppMoneyText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-    'Rs ${NumberFormat('#,##0.##', 'en').format(amount)}',
+    formatRupees(amount),
     style: (large ? AppTypography.numberLg : AppTypography.numberMd).copyWith(
       color: color ?? DefaultTextStyle.of(context).style.color,
     ),

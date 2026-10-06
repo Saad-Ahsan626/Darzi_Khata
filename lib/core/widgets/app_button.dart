@@ -93,3 +93,47 @@ class AppIconButton extends StatelessWidget {
   Widget build(BuildContext context) =>
       IconButton(tooltip: label, onPressed: onPressed, icon: Icon(icon));
 }
+
+/// A bordered 40px icon button for screen headers. Its touch target is still
+/// the full minimum size.
+class AppBoxedIconButton extends StatelessWidget {
+  const AppBoxedIconButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+    this.onCarbon = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback? onPressed;
+
+  /// Draw for a carbon background instead of a light one.
+  final bool onCarbon;
+
+  static const _size = Size.square(40);
+
+  /// The same look for other icon buttons, such as a menu button.
+  static ButtonStyle styleOf({required bool onCarbon}) => IconButton.styleFrom(
+    foregroundColor: onCarbon ? AppPalette.white : AppPalette.carbon,
+    fixedSize: _size,
+    minimumSize: _size,
+    padding: EdgeInsets.zero,
+    tapTargetSize: MaterialTapTargetSize.padded,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(AppRadii.control),
+      side: BorderSide(
+        color: onCarbon ? AppPalette.glassBorder : AppPalette.lineStrong,
+      ),
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+    tooltip: label,
+    onPressed: onPressed,
+    icon: Icon(icon, size: 20),
+    style: styleOf(onCarbon: onCarbon),
+  );
+}

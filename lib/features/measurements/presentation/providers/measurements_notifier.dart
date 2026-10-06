@@ -14,11 +14,11 @@ final measurementsNotifierProvider = AsyncNotifierProvider<MeasurementsNotifier,
 });
 
 class MeasurementsNotifier extends AsyncNotifier<List<Measurement>> {
-  late final MeasurementLocalDataSource _dataSource;
+  MeasurementLocalDataSource get _dataSource =>
+      ref.read(measurementLocalDataSourceProvider);
 
   @override
   Future<List<Measurement>> build() async {
-    _dataSource = ref.watch(measurementLocalDataSourceProvider);
     return _fetchMeasurements();
   }
 
