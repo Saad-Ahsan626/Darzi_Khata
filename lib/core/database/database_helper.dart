@@ -55,6 +55,9 @@ class DatabaseHelper {
     if (oldVersion < 4) {
       await DatabaseMigrations.toV4(db);
     }
+    if (oldVersion < 5) {
+      await DatabaseMigrations.toV5(db);
+    }
   }
 
   Future<void> close() async {

@@ -3,7 +3,9 @@ import 'package:intl/intl.dart';
 import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/core/widgets/app_widgets.dart';
 import 'package:tailor_khata/features/measurements/domain/entities/fit_profile.dart';
+import 'package:tailor_khata/features/measurements/domain/entities/garment_template.dart';
 import 'package:tailor_khata/features/measurements/domain/entities/measurement.dart';
+import 'package:tailor_khata/features/measurements/presentation/measurement_format.dart';
 
 /// A saved measurement profile: garment, fit, when it changed and its key
 /// values in the unit the profile is kept in.
@@ -17,28 +19,18 @@ class MeasurementProfileCard extends StatelessWidget {
     required this.onTap,
   });
 
-  /// The values shown first when a profile has more than fit on the card.
-  static const _keyFields = [
-    'chest',
-    'waist',
-    'hip',
-    'sleeve',
-    'length',
-    'neck',
-    'shoulder',
-    'inseam',
-    'rise',
-    'bottom',
-  ];
   static const _shown = 4;
 
-  List<MapEntry<String, double>> get _values {
+  /// The first recorded values in the garment's own field order.
+  List<(MeasurementField, double)> get _values {
     final data = measurement.measurementData;
-    final keys = [
-      ..._keyFields.where(data.containsKey),
-      ...data.keys.where((key) => !_keyFields.contains(key)),
-    ];
-    return [for (final key in keys.take(_shown)) MapEntry(key, data[key]!)];
+    final template = GarmentTemplates.named(
+      measurement.garmentType,
+    ).including(data.keys);
+    return [
+      for (final field in template.fields)
+        if (data[field.key] case final value?) (field, value),
+    ].take(_shown).toList();
   }
 
   @override
@@ -125,7 +117,7 @@ class MeasurementProfileCard extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    for (final (index, value) in values.indexed)
+                    for (final (index, (field, inches)) in values.indexed)
                       Expanded(
                         child: DecoratedBox(
                           decoration: BoxDecoration(
@@ -144,7 +136,9 @@ class MeasurementProfileCard extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  value.key.toUpperCase(),
+                                  field.label.toUpperCase(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: AppTypography.micro.copyWith(
                                     fontSize: 9.5,
                                     letterSpacing: 9.5 * 0.06,
@@ -153,9 +147,7 @@ class MeasurementProfileCard extends StatelessWidget {
                                 ),
                                 const SizedBox(height: AppSpacing.xs),
                                 Text(
-                                  measurement.unit
-                                      .fromInches(value.value)
-                                      .toStringAsFixed(1),
+                                  formatMeasurement(inches, measurement.unit),
                                   style: AppTypography.numberMd.copyWith(
                                     fontSize: 16,
                                     color: AppPalette.carbon,

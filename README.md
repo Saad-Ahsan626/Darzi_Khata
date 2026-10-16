@@ -16,7 +16,7 @@ screens are being redesigned incrementally in the following phases.
 | --- | --- | --- |
 | Startup | Animated splash that opens the database, onboarding, guest entry | Persist guest choice; redesigned onboarding and welcome |
 | Customers | Redesigned list, add/edit, customer page and delete; search, photos, notes, measurement profiles, order history | Filter on the order history |
-| Measurements | Save numeric values per customer, garment and fit profile | Replace 3D viewer with grouped fields; unit switch, notes and garment field templates |
+| Measurements | Grouped fields for seven garments, Formal/Casual profiles, in/cm, stitching note, editor with keypad and previous value | Editing garment field sets in Settings |
 | Orders | Create, due-date filters, status changes, delivery/payment confirmation; stored order numbers, payments and status history | Screens for payments, history, order numbers and pieces; general editing; measurement linking |
 | Dashboard/revenue | Delivery list, balances, period summaries | New layouts and payment-date-based reporting |
 | Design foundation | Tokens, Material theme, offline fonts, component library, glass navigation, debug preview | Full feature-screen layouts |
@@ -25,8 +25,7 @@ screens are being redesigned incrementally in the following phases.
 | Invoices/backup/cloud | Planned | Export, restore, accounts, synchronization |
 
 The interface is English-only. Previously stored optional Urdu customer names
-remain in storage and are preserved when editing a customer. The existing 3D
-measurement viewer remains until its form-based replacement in Phase 4.
+remain in storage and are preserved when editing a customer.
 
 ## Run locally
 
@@ -180,14 +179,14 @@ Tracked Dart tokens are the implementation source of truth.
 
 ## Persistence and dependencies
 
-`DatabaseHelper` opens `tailor_khata.db` at schema version **4**, with foreign keys
+`DatabaseHelper` opens `tailor_khata.db` at schema version **5**, with foreign keys
 enabled. Existing databases are upgraded in place by
 `core/database/database_migrations.dart`.
 
 | Table | Contents |
 | --- | --- |
 | `customers` | Name, phone, address, photo path, optional note |
-| `measurements` | One profile per customer, garment and fit (Formal/Casual): a JSON map of field to inches, the unit it is shown in, a stitching note, last update |
+| `measurements` | One profile per customer, garment and fit (Formal/Casual): a JSON map of field to inches, the unit it is shown in, a stitching note, last update, and for each changed field the value it held before |
 | `orders` | Order number, garment, pieces, fabric, cutter note, due date, total, optional measurement reference; current status and paid total |
 | `payments` | One row per payment: amount, method (cash, bank, Easypaisa), date, whether it was the advance |
 | `order_status_events` | One row each time an order enters a stage, with the time |
@@ -210,6 +209,12 @@ numbers in a Formal Fit profile, the old order notes become the fabric, orders
 are numbered by creation date, and each order's paid amount becomes one cash
 payment dated at order creation. Only creation and delivery times were
 recorded before, so earlier stages in the history carry the creation time.
+Version 5 adds the previous values (empty for existing profiles) and renames
+the garment "Pant-Coat" to "Suit" in measurements and orders.
+
+The garments and the fields each is measured by are listed in
+`measurements/domain/entities/garment_template.dart`. A saved value outside a
+garment's field set is shown under "Other" rather than hidden.
 
 Photos are files in the app's documents directory. `shared_preferences` stores
 onboarding completion. `ownerId`/`syncStatus` reserve fields for future cloud work;
@@ -223,7 +228,6 @@ not yet available.
 | Results/equality | `fpdart`, `equatable` |
 | IDs/formatting | `uuid`, `intl` |
 | Photos/files | `image_picker`, `path_provider` |
-| Existing measurement viewer | `flutter_cube`, pending replacement |
 | Development checks | `flutter_test`, `flutter_lints`, `sqflite_common_ffi` |
 
 ## Validation and known gaps
@@ -235,7 +239,8 @@ flutter test --no-pub \
   test/customer_screens_test.dart test/customer_activity_test.dart \
   test/customer_repository_test.dart test/order_flow_test.dart \
   test/order_repository_test.dart test/measurement_screen_test.dart \
-  test/measurement_repository_test.dart test/shop_settings_repository_test.dart \
+  test/measurement_repository_test.dart test/measurement_profile_test.dart \
+  test/shop_settings_repository_test.dart \
   test/database_migration_test.dart
 ```
 
@@ -246,9 +251,14 @@ larger text, and preservation of stored customer names during English edits.
 
 The order flow tests use the same fixtures. They verify that the order screen
 asks for a stage change, a delivery or a payment as separate operations, and
-that an order started from a customer's page is saved for that customer. The
-measurement screen test verifies that Formal and Casual fits show and save
-their own values.
+that an order started from a customer's page is saved for that customer.
+
+The measurement tests cover the grouped fields, the draft kept until "Save
+Profile", discarding, the editor's steps, fractions, keypad and previous value,
+centimeter profiles stored in inches, a new profile, the prompt before
+switching fit or leaving with unsaved changes, and a narrow phone with larger
+text. The profile test covers which previous value each field keeps, the
+garment field sets, and how values are formatted.
 
 The customer tests cover the list (A–Z order, status lines, search, empty and
 no-match states), the form (required name and 11-digit phone, a save that
@@ -275,18 +285,16 @@ Important existing issues for subsequent feature work:
 
 - The dashboard and revenue screens still total paid amounts by order creation
   date; payment dates are stored but not yet used there.
-- Order and measurement saves show success before persistence completes;
-  customer saves wait for it.
+- Order saves show success before persistence completes; customer and
+  measurement saves wait for it.
 - Pieces, payment method and history, status times and shop settings are
   stored but have no screens yet. Order numbers appear only in a customer's
   order history.
-- The customer page's "Add Measurements" opens the existing 3D measurement
-  screen until its replacement.
 - New orders do not link a measurement record.
 - WhatsApp feedback does not send a message.
 
 These are feature/data-flow tasks; theme integration does not change their logic.
-Phase 1's visual foundation, the version 4 data model, the customer workflow
-and the animated splash are implemented. The remaining phases are dashboard,
-form-based measurements, orders/payments, remaining screens, and complete
+Phase 1's visual foundation, the data model, the customer workflow, the
+measurement screens and the animated splash are implemented. The remaining
+phases are dashboard, orders/payments, remaining screens, and complete
 end-to-end verification.

@@ -226,6 +226,40 @@ void main() {
     expect(customer['note'], isNull);
   });
 
+  test('profiles start without previous values', () async {
+    final db = await _upgradedFrom(_seedShop);
+    final profile = await _row(db, 'measurements', 'profile');
+    expect(profile.containsKey('previousData'), isTrue);
+    expect(profile['previousData'], isNull);
+  });
+
+  test('Pant-Coat takes the catalogue name Suit', () async {
+    final db = await _upgradedFrom((db) async {
+      await db.insert('customers', _customer('faisal', 'Faisal Shah'));
+      await db.insert(
+        'measurements',
+        _measurement(
+          'coat',
+          garment: 'Pant-Coat',
+          values: {'chest': '40.0"'},
+          createdAt: _at(9, 1),
+        ),
+      );
+      await db.insert('orders', {
+        ..._order(
+          'coat-order',
+          status: 'Received',
+          total: 18000,
+          paid: 5000,
+          createdAt: _at(9, 2),
+        ),
+        'garmentType': 'Pant-Coat',
+      });
+    });
+    expect((await _row(db, 'measurements', 'coat'))['garmentType'], 'Suit');
+    expect((await _row(db, 'orders', 'coat-order'))['garmentType'], 'Suit');
+  });
+
   test('measurement text becomes numbers in a Formal Fit profile', () async {
     final db = await _upgradedFrom(_seedShop);
     final profile = await _row(db, 'measurements', 'profile');

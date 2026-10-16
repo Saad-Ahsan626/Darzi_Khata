@@ -222,10 +222,21 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen>
       itemCount: measurements.length,
       separatorBuilder: (context, index) =>
           const SizedBox(height: AppSpacing.md),
-      itemBuilder: (context, index) => MeasurementProfileCard(
-        measurement: measurements[index],
-        onTap: open,
-      ),
+      itemBuilder: (context, index) {
+        final profile = measurements[index];
+        return MeasurementProfileCard(
+          measurement: profile,
+          onTap: () => context.push(
+            Uri(
+              path: '/customers/${customer.id}/measurements',
+              queryParameters: {
+                'garment': profile.garmentType,
+                'fit': profile.fitProfile,
+              },
+            ).toString(),
+          ),
+        );
+      },
     );
   }
 

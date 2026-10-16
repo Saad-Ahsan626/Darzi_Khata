@@ -93,6 +93,8 @@ GoRouter createAppRouter({String? initialLocation}) => GoRouter(
                   path: 'measurements',
                   builder: (context, state) => MeasurementScreen(
                     customerId: state.pathParameters['id']!,
+                    initialGarment: state.uri.queryParameters['garment'],
+                    initialFit: state.uri.queryParameters['fit'],
                   ),
                 ),
               ],

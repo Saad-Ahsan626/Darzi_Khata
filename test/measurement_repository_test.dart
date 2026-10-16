@@ -127,6 +127,22 @@ void main() {
     expect((await orders.getOrderById('order')).measurementId, 'formal');
   });
 
+  test('previous values are read back as saved', () async {
+    final revised = _profile('formal').revise(
+      values: const {'chest': 41, 'length': 42},
+      note: '',
+      at: _remeasured,
+    );
+    valueOf(await repository.addMeasurement(revised));
+
+    final saved = (await profiles()).single;
+    expect(saved.measurementData, {'chest': 41.0, 'length': 42.0});
+    expect(saved.previousValues, {
+      'chest': PreviousMeasurement(40.5, _measured),
+    });
+    expect(saved.updatedAt, _remeasured);
+  });
+
   group('measurement units', () {
     test('inches are stored as entered', () {
       expect(MeasurementUnit.inches.toInches(40.5), 40.5);

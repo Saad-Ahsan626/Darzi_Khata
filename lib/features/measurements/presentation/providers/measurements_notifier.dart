@@ -26,8 +26,10 @@ class MeasurementsNotifier extends AsyncNotifier<List<Measurement>> {
     return await _dataSource.getMeasurements();
   }
 
-  Future<void> saveMeasurement(Measurement measurement) async {
-    final previousState = state.value;
+  /// Saves a profile and returns whether it was stored. When it was not, the
+  /// list goes back to what it held before.
+  Future<bool> saveMeasurement(Measurement measurement) async {
+    final previousState = state.valueOrNull;
     final model = MeasurementModel.fromEntity(measurement);
     
     // Optimistic update
@@ -44,16 +46,17 @@ class MeasurementsNotifier extends AsyncNotifier<List<Measurement>> {
 
     try {
       await _dataSource.saveMeasurement(model);
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
+      return true;
+    } on Exception {
       if (previousState != null) {
         state = AsyncValue.data(previousState);
       }
+      return false;
     }
   }
 
   Future<void> deleteMeasurement(String id) async {
-    final previousState = state.value;
+    final previousState = state.valueOrNull;
     
     // Optimistic update
     if (previousState != null) {

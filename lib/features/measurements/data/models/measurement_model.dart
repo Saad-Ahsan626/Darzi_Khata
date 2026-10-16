@@ -9,6 +9,7 @@ class MeasurementModel extends Measurement {
     required super.garmentType,
     super.fitProfile,
     required super.measurementData,
+    super.previousValues,
     super.unit,
     super.note,
     required super.createdAt,
@@ -24,6 +25,7 @@ class MeasurementModel extends Measurement {
       garmentType: entity.garmentType,
       fitProfile: entity.fitProfile,
       measurementData: Map<String, double>.from(entity.measurementData),
+      previousValues: Map.of(entity.previousValues),
       unit: entity.unit,
       note: entity.note,
       createdAt: entity.createdAt,
@@ -34,18 +36,35 @@ class MeasurementModel extends Measurement {
   }
 
   factory MeasurementModel.fromJson(Map<String, dynamic> json) {
-    final values = jsonDecode(json['measurementData'] as String) as Map<String, dynamic>;
+    final values =
+        jsonDecode(json['measurementData'] as String) as Map<String, dynamic>;
+    final previous = json['previousData'] == null
+        ? const <String, dynamic>{}
+        : jsonDecode(json['previousData'] as String) as Map<String, dynamic>;
     return MeasurementModel(
       id: json['id'] as String,
       customerId: json['customerId'] as String,
       garmentType: json['garmentType'] as String,
       fitProfile: json['fitProfile'] as String,
-      measurementData: values.map((key, value) => MapEntry(key, (value as num).toDouble())),
+      measurementData: values.map(
+        (key, value) => MapEntry(key, (value as num).toDouble()),
+      ),
+      previousValues: previous.map(
+        (key, value) => MapEntry(
+          key,
+          PreviousMeasurement(
+            (value['value'] as num).toDouble(),
+            DateTime.fromMillisecondsSinceEpoch(value['at'] as int),
+          ),
+        ),
+      ),
       unit: MeasurementUnit.fromCode(json['unit'] as String),
       note: json['note'] as String?,
       createdAt: DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int),
       // Rows written before updatedAt existed only have their creation time.
-      updatedAt: DateTime.fromMillisecondsSinceEpoch((json['updatedAt'] ?? json['createdAt']) as int),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(
+        (json['updatedAt'] ?? json['createdAt']) as int,
+      ),
       ownerId: json['ownerId'] as String? ?? 'guest',
       syncStatus: json['syncStatus'] as int? ?? 0,
     );
@@ -58,6 +77,15 @@ class MeasurementModel extends Measurement {
       'garmentType': garmentType,
       'fitProfile': fitProfile,
       'measurementData': jsonEncode(measurementData),
+      'previousData': previousValues.isEmpty
+          ? null
+          : jsonEncode({
+              for (final entry in previousValues.entries)
+                entry.key: {
+                  'value': entry.value.value,
+                  'at': entry.value.recordedAt.millisecondsSinceEpoch,
+                },
+            }),
       'unit': unit.code,
       'note': note,
       'createdAt': createdAt.millisecondsSinceEpoch,

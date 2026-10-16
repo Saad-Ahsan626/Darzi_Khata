@@ -1,5 +1,5 @@
 class DatabaseSchema {
-  static const int version = 4;
+  static const int version = 5;
 
   static const String customersTable = 'customers';
   static const String measurementsTable = 'measurements';
@@ -26,6 +26,8 @@ class DatabaseSchema {
 
   /// One row per customer, garment and fit profile. measurementData is a JSON
   /// map of field key to inches; unit is the unit the profile is shown in.
+  /// previousData maps a changed field to its earlier inches and the time
+  /// (`at`, epoch milliseconds) the profile was saved holding it.
   static const String createMeasurementsTable =
       '''
     CREATE TABLE $measurementsTable (
@@ -40,6 +42,7 @@ class DatabaseSchema {
       unit TEXT NOT NULL DEFAULT 'in',
       note TEXT,
       updatedAt INTEGER,
+      previousData TEXT,
       FOREIGN KEY(customerId) REFERENCES $customersTable(id) ON DELETE CASCADE
     )
   ''';

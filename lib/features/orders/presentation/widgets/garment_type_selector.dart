@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/core/widgets/app_widgets.dart';
+import 'package:tailor_khata/features/measurements/domain/entities/garment_template.dart';
 
 class GarmentTypeSelector extends StatelessWidget {
   const GarmentTypeSelector({
@@ -16,14 +17,13 @@ class GarmentTypeSelector extends StatelessWidget {
   Widget build(BuildContext context) => Wrap(
     spacing: AppSpacing.sm,
     runSpacing: AppSpacing.sm,
-    children: ['Shalwar Kameez', 'Kurta', 'Pant-Coat', 'Sherwani', 'Waistcoat']
-        .map(
-          (garment) => AppSelectionChip(
-            label: garment,
-            selected: garment == selectedGarment,
-            onPressed: () => onChanged(garment),
-          ),
-        )
-        .toList(),
+    children: [
+      for (final garment in GarmentTemplates.all)
+        AppSelectionChip(
+          label: garment.name,
+          selected: garment.name == selectedGarment,
+          onPressed: () => onChanged(garment.name),
+        ),
+    ],
   );
 }

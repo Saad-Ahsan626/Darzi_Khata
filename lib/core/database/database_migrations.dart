@@ -82,6 +82,26 @@ abstract final class DatabaseMigrations {
     return values;
   }
 
+  /// Version 5: each measurement profile keeps the values its fields held
+  /// before they last changed, and "Pant-Coat" takes the catalogue's name,
+  /// "Suit".
+  static Future<void> toV5(Database db) async {
+    await db.execute(
+      'ALTER TABLE ${DatabaseSchema.measurementsTable} ADD COLUMN previousData TEXT',
+    );
+    for (final table in [
+      DatabaseSchema.measurementsTable,
+      DatabaseSchema.ordersTable,
+    ]) {
+      await db.update(
+        table,
+        {'garmentType': 'Suit'},
+        where: 'garmentType = ?',
+        whereArgs: ['Pant-Coat'],
+      );
+    }
+  }
+
   /// Returns the number of orders, which is also the last order number used.
   static Future<int> _upgradeOrders(Database db) async {
     const table = DatabaseSchema.ordersTable;
