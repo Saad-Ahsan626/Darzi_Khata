@@ -24,6 +24,10 @@ enum _Filter {
   const _Filter(this.label);
   final String label;
 
+  /// The filter named in a link such as `/orders?filter=today`.
+  static _Filter named(String? name) =>
+      values.where((filter) => filter.name == name).firstOrNull ?? all;
+
   bool includes(Order order, DateTime today) => switch (this) {
     _Filter.all => true,
     _Filter.today => order.isDueToday(today),
@@ -33,14 +37,26 @@ enum _Filter {
 }
 
 class OrderListScreen extends ConsumerStatefulWidget {
-  const OrderListScreen({super.key});
+  const OrderListScreen({super.key, this.initialFilter});
+
+  /// `today`, `upcoming` or `overdue`; all orders otherwise.
+  final String? initialFilter;
 
   @override
   ConsumerState<OrderListScreen> createState() => _OrderListScreenState();
 }
 
 class _OrderListScreenState extends ConsumerState<OrderListScreen> {
-  _Filter _filter = _Filter.all;
+  late _Filter _filter = _Filter.named(widget.initialFilter);
+
+  @override
+  void didUpdateWidget(OrderListScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Opened again from a link or the navigation bar.
+    if (widget.initialFilter != oldWidget.initialFilter) {
+      _filter = _Filter.named(widget.initialFilter);
+    }
+  }
 
   void _newOrder() => context.push('/orders/new');
 

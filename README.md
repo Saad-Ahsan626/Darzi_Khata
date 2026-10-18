@@ -18,7 +18,7 @@ screens are being redesigned incrementally in the following phases.
 | Customers | Redesigned list, add/edit, customer page and delete; search, photos, notes, measurement profiles, order history | Filter on the order history |
 | Measurements | Grouped fields for seven garments, Formal/Casual profiles, in/cm, stitching note, editor with keypad and previous value | Editing garment field sets in Settings |
 | Orders | Redesigned list with All/Today/Upcoming/Overdue filters; new and edit form with pieces, fabric, cutter note and a linked measurement profile; order page with production timeline and payments; separate stage, payment and delivery steps; payment undo and removal; delete | Receipts; filters on the customer's order history |
-| Dashboard/revenue | Delivery list, balances, period summaries | New layouts and payment-date-based reporting |
+| Dashboard/revenue | Home with the month's billed, collected and outstanding money, work in progress, today's deliveries with Deliver/Update, overdue link; Revenue by this month, last month, year or custom dates with a six-month chart and the payments received, copied as CSV | Exporting to a file |
 | Design foundation | Tokens, Material theme, offline fonts, component library, glass navigation, debug preview | Full feature-screen layouts |
 | Login/settings | Placeholder screens; stored shop settings | Authentication, settings screen, language/unit preferences |
 | WhatsApp | Reminder sheet that opens WhatsApp with an editable message for the order's stage and balance; nothing is sent by the app | Confirmation message on new orders; Urdu text |
@@ -240,6 +240,7 @@ flutter test --no-pub \
   test/customer_screens_test.dart test/customer_activity_test.dart \
   test/customer_repository_test.dart test/order_flow_test.dart \
   test/order_reminder_test.dart test/order_repository_test.dart \
+  test/dashboard_test.dart \
   test/measurement_screen_test.dart \
   test/measurement_repository_test.dart test/measurement_profile_test.dart \
   test/shop_settings_repository_test.dart \
@@ -261,6 +262,12 @@ measurement profile, the balance kept in view, required details, the advance
 limit, picking a customer, the prompt before leaving, and editing an order
 without changing its payments or number. The reminder test covers due-date
 sorting, each reminder message, the wa.me link and rupee input grouping.
+
+The dashboard test covers how money is counted (orders are billed on the day
+they are taken, payments collected on the day they are received), periods,
+the six-month totals and labels; Home's figures, an earlier month, delivering
+and moving a stage from Home, and opening today's orders; and Revenue's
+periods, payments, opening an order from a payment and the CSV copy.
 
 The measurement tests cover the grouped fields, the draft kept until "Save
 Profile", discarding, the editor's steps, fractions, keypad and previous value,
@@ -288,17 +295,15 @@ clears their orders and measurements from the lists the screens hold.
 Two older database tests may exist locally under `test/`; they remain ignored by
 Git. They use a persistent database and a fixed customer ID, so the insertion
 test can fail on repeated runs. Use the explicit test command above for repeatable
-checks. Screen tests for the dashboard and settings are still needed.
+checks. Screen tests for settings are still needed.
 
 Important existing issues for subsequent feature work:
 
-- The dashboard and revenue screens still total paid amounts by order creation
-  date; payment dates are stored but not yet used there.
 - Shop settings are stored but have no screen yet, so reminders leave out the
   shop name and hours until it exists.
 
 These are feature/data-flow tasks; theme integration does not change their logic.
 Phase 1's visual foundation, the data model, the customer workflow, the
-measurement screens, the order and payment screens and the animated splash are
-implemented. The remaining phases are dashboard, remaining screens, and complete
-end-to-end verification.
+measurement screens, the order and payment screens, Home and Revenue, and the
+animated splash are implemented. The remaining phases are onboarding, welcome,
+settings and the app icon, then complete end-to-end verification.

@@ -146,3 +146,14 @@ final orderPaymentsProvider = FutureProvider.autoDispose
         (payments) => payments,
       );
     });
+
+/// Every payment recorded, newest first. Read again whenever the orders
+/// change.
+final paymentsProvider = FutureProvider<List<Payment>>((ref) async {
+  ref.watch(ordersNotifierProvider);
+  final result = await ref.watch(getPaymentsUsecaseProvider)(const NoParams());
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (payments) => payments,
+  );
+});

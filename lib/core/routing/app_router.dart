@@ -103,7 +103,9 @@ GoRouter createAppRouter({String? initialLocation}) => GoRouter(
         ),
         GoRoute(
           path: '/orders',
-          builder: (context, state) => const OrderListScreen(),
+          builder: (context, state) => OrderListScreen(
+            initialFilter: state.uri.queryParameters['filter'],
+          ),
           routes: [
             GoRoute(
               path: 'new',

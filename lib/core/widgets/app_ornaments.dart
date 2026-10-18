@@ -157,3 +157,33 @@ class AppIconTile extends StatelessWidget {
     ),
   );
 }
+
+/// An uppercase section label followed by a measuring-tape rule.
+class AppSectionRule extends StatelessWidget {
+  const AppSectionRule(this.label, {super.key});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Text(
+        label.toUpperCase(),
+        style: AppTypography.sectionLabel.copyWith(
+          fontSize: 10.5,
+          letterSpacing: 10.5 * 0.11,
+          color: AppPalette.ink55,
+        ),
+      ),
+      const SizedBox(width: 10),
+      const Expanded(
+        child: SizedBox(
+          height: 7,
+          child: AppTickPattern(
+            color: Color.fromRGBO(23, 25, 24, 0.22),
+            spacing: 7,
+          ),
+        ),
+      ),
+    ],
+  );
+}

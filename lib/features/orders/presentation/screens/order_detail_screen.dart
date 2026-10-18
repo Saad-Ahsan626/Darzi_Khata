@@ -17,6 +17,7 @@ import 'package:tailor_khata/features/orders/domain/entities/order_status.dart';
 import 'package:tailor_khata/features/orders/domain/entities/order_status_event.dart';
 import 'package:tailor_khata/features/orders/domain/entities/order_timing.dart';
 import 'package:tailor_khata/features/orders/domain/entities/payment.dart';
+import 'package:tailor_khata/features/orders/presentation/order_actions.dart';
 import 'package:tailor_khata/features/orders/presentation/providers/orders_notifier.dart';
 import 'package:tailor_khata/features/orders/presentation/widgets/order_sheets.dart';
 import 'package:tailor_khata/features/orders/presentation/widgets/production_stepper.dart';
@@ -48,6 +49,14 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
 
   OrdersNotifier get _orders => ref.read(ordersNotifierProvider.notifier);
 
+  OrderActions get _actions => OrderActions(
+    context,
+    ref,
+    onBusy: (busy) {
+      if (mounted) setState(() => _busy = busy);
+    },
+  );
+
   Future<T> _run<T>(Future<T> Function() write) async {
     setState(() => _busy = true);
     try {
@@ -66,94 +75,6 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               : "Couldn't save the change. Please try again.",
         ),
       ),
-    );
-  }
-
-  String _balanceText(double balance) =>
-      balance > 0 ? 'Balance now ${formatRupees(balance)}' : 'Paid in full';
-
-  Future<void> _changeStatus(Order order) async {
-    final history =
-        ref.read(orderStatusHistoryProvider(order.id)).valueOrNull ??
-        const <OrderStatusEvent>[];
-    final status = await showChangeStatusSheet(
-      context,
-      order: order,
-      history: history,
-    );
-    if (status == null || !mounted) return;
-    final failure = await _run(() => _orders.changeStatus(order.id, status));
-    if (!mounted) return;
-    if (failure != null) return _showFailure(failure);
-    showAppToast(
-      context,
-      message: 'Moved to $status',
-      detail: order.balance > 0
-          ? '${formatRupees(order.balance)} still outstanding'
-          : null,
-    );
-  }
-
-  /// Records a payment and, when [thenDeliver], delivers the order after.
-  Future<void> _recordPayment(
-    Order order,
-    String subtitle, {
-    bool thenDeliver = false,
-  }) async {
-    final entry = await showRecordPaymentSheet(
-      context,
-      order: order,
-      subtitle: subtitle,
-    );
-    if (entry == null || !mounted) return;
-    final result = await _run(
-      () => _orders.recordPayment(order.id, entry.amount, entry.method),
-    );
-    if (!mounted) return;
-    if (result.getLeft().toNullable() case final failure?) {
-      return _showFailure(failure);
-    }
-    final payment = result.getRight().toNullable()!;
-    final balance = order.balance - payment.amount;
-
-    if (thenDeliver) {
-      final failure = await _run(() => _orders.deliverOrder(order.id));
-      if (!mounted) return;
-      if (failure != null) return _showFailure(failure);
-      showAppToast(
-        context,
-        message: 'Order delivered',
-        detail:
-            'Payment of ${formatRupees(payment.amount)} recorded · '
-            '${_balanceText(balance)}',
-      );
-      return;
-    }
-
-    // Undo stays on screen after this page may have closed, so it holds on
-    // to the notifier rather than reading it through this page.
-    final orders = _orders;
-    showAppToast(
-      context,
-      message: 'Payment of ${formatRupees(payment.amount)} recorded',
-      detail: '${_balanceText(balance)} · ${_dateTime.format(payment.paidAt)}',
-      actionLabel: 'Undo',
-      onAction: () => _undoPayment(orders, payment, order.balance),
-    );
-  }
-
-  Future<void> _undoPayment(
-    OrdersNotifier orders,
-    Payment payment,
-    double balanceBefore,
-  ) async {
-    final failure = await orders.deletePayment(payment.id);
-    if (!mounted) return;
-    if (failure != null) return _showFailure(failure);
-    showAppToast(
-      context,
-      message: 'Payment removed',
-      detail: 'Balance back to ${formatRupees(balanceBefore)}',
     );
   }
 
@@ -188,36 +109,6 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       message: 'Payment removed',
       detail: 'Balance now ${formatRupees(order.balance + payment.amount)}',
     );
-  }
-
-  Future<void> _deliver(
-    Order order,
-    String customerName,
-    String subtitle,
-  ) async {
-    final choice = await showDeliverDialog(
-      context,
-      order: order,
-      customerName: customerName,
-    );
-    if (!mounted) return;
-    switch (choice) {
-      case null:
-        return;
-      case DeliveryChoice.recordPaymentFirst:
-        return _recordPayment(order, subtitle, thenDeliver: true);
-      case DeliveryChoice.deliver:
-        final failure = await _run(() => _orders.deliverOrder(order.id));
-        if (!mounted) return;
-        if (failure != null) return _showFailure(failure);
-        showAppToast(
-          context,
-          message: 'Order delivered',
-          detail: order.balance > 0
-              ? '${formatRupees(order.balance)} stays outstanding'
-              : 'Paid in full',
-        );
-    }
   }
 
   Future<void> _delete(Order order, String orderLabel) async {
@@ -356,7 +247,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                const _SectionRule('Production'),
+                const AppSectionRule('Production'),
                 const SizedBox(height: 14),
                 ProductionStepper(status: order.status),
                 const SizedBox(height: 10),
@@ -368,7 +259,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   ),
                 ),
                 const SizedBox(height: 22),
-                const _SectionRule('Payments'),
+                const AppSectionRule('Payments'),
                 const SizedBox(height: AppSpacing.md),
                 if (payments.isEmpty)
                   Text(
@@ -398,9 +289,14 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
           _ActionBar(
             order: order,
             busy: _busy,
-            onChangeStatus: () => _changeStatus(order),
-            onRecordPayment: () => _recordPayment(order, subtitle),
-            onDeliver: () => _deliver(order, customerName, subtitle),
+            onChangeStatus: () => _actions.changeStatus(order),
+            onRecordPayment: () =>
+                _actions.recordPayment(order, subtitle: subtitle),
+            onDeliver: () => _actions.deliver(
+              order,
+              customerName: customerName,
+              subtitle: subtitle,
+            ),
             onRemind: () => showReminderSheet(
               context,
               customerName: customerName,
@@ -839,36 +735,6 @@ class _InfoCard extends StatelessWidget {
       ),
     );
   }
-}
-
-/// An uppercase label followed by a measuring-tape rule.
-class _SectionRule extends StatelessWidget {
-  const _SectionRule(this.label);
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Text(
-        label.toUpperCase(),
-        style: AppTypography.sectionLabel.copyWith(
-          fontSize: 10.5,
-          letterSpacing: 10.5 * 0.11,
-          color: AppPalette.ink55,
-        ),
-      ),
-      const SizedBox(width: 10),
-      const Expanded(
-        child: SizedBox(
-          height: 7,
-          child: AppTickPattern(
-            color: Color.fromRGBO(23, 25, 24, 0.22),
-            spacing: 7,
-          ),
-        ),
-      ),
-    ],
-  );
 }
 
 class _ActionBar extends StatelessWidget {
