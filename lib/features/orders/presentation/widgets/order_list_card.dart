@@ -37,7 +37,7 @@ class OrderListCard extends StatelessWidget {
   final Order order;
   final String customerName;
 
-  /// The order number as the shop shows it, such as `TK-0042`.
+  /// The order number as the shop shows it, such as `DK-0042`.
   final String? orderLabel;
   final DateTime today;
   final VoidCallback onTap;

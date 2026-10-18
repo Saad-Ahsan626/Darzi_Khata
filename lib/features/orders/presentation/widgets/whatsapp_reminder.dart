@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:tailor_khata/core/app_info.dart';
 import 'package:tailor_khata/core/formatting/app_formats.dart';
 import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/core/widgets/app_widgets.dart';
@@ -308,7 +309,7 @@ class _ReminderSheetState extends ConsumerState<_ReminderSheet> {
                             ? 'No phone number is saved for '
                                   '${widget.customerName}. Copy the text to '
                                   'send it another way.'
-                            : 'Tailor Khata opens WhatsApp with this text '
+                            : '$appName opens WhatsApp with this text '
                                   'ready. You still have to press send there '
                                   '— nothing is sent from this app.',
                         style: AppTypography.support.copyWith(

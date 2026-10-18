@@ -358,8 +358,8 @@ void main() {
       expect(find.text('Rs 7,800'), findsOneWidget);
       expect(find.text('2 orders'), findsOneWidget);
       await tester.ensureVisible(find.text('Sadia Rehman'));
-      expect(find.text('TK-0003 · Cash advance · Yesterday'), findsOneWidget);
-      expect(find.text('TK-0001 · Bank · 2 Oct'), findsOneWidget);
+      expect(find.text('DK-0003 · Cash advance · Yesterday'), findsOneWidget);
+      expect(find.text('DK-0001 · Bank · 2 Oct'), findsOneWidget);
 
       await _tap(tester, find.text('Last month'));
       expect(find.text('COLLECTED · SEPTEMBER'), findsOneWidget);
@@ -396,9 +396,9 @@ void main() {
       expect(
         copied,
         'Date,Order,Customer,Method,Advance,Amount\n'
-        '2026-10-01 11:00,TK-0002,Nida Aslam,Cash,yes,2000\n'
-        '2026-10-02 16:00,TK-0001,Faisal Shah,Bank,no,2500\n'
-        '2026-10-03 12:00,TK-0003,Sadia Rehman,Cash,yes,1000',
+        '2026-10-01 11:00,DK-0002,Nida Aslam,Cash,yes,2000\n'
+        '2026-10-02 16:00,DK-0001,Faisal Shah,Bank,no,2500\n'
+        '2026-10-03 12:00,DK-0003,Sadia Rehman,Cash,yes,1000',
       );
       expect(find.text('Copied 3 payments'), findsOneWidget);
     });

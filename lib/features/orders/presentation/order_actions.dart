@@ -90,7 +90,7 @@ class OrderActions {
   }
 
   /// Records a payment and, when [thenDeliver], delivers the order after.
-  /// [subtitle] names the order in the sheet, such as `TK-0042 · Faisal`.
+  /// [subtitle] names the order in the sheet, such as `DK-0042 · Faisal`.
   Future<void> recordPayment(
     Order order, {
     required String subtitle,

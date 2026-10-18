@@ -11,7 +11,7 @@ import 'package:tailor_khata/features/orders/presentation/widgets/order_status_b
 class CustomerOrderCard extends StatelessWidget {
   final Order order;
 
-  /// The order number as the shop shows it, such as `TK-0042`.
+  /// The order number as the shop shows it, such as `DK-0042`.
   final String? orderLabel;
   final DateTime today;
   final VoidCallback onTap;

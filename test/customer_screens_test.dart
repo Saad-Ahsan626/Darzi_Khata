@@ -521,10 +521,10 @@ void main() {
       expect(find.text('7 ORDERS · RS 2,800 OUTSTANDING'), findsOneWidget);
       expect(find.byType(CustomerOrderCard), findsNWidgets(3));
       expect(
-        _top(tester, 'TK-1042'),
-        lessThan(_top(tester, 'TK-0987')),
+        _top(tester, 'DK-1042'),
+        lessThan(_top(tester, 'DK-0987')),
       );
-      expect(_top(tester, 'TK-0987'), lessThan(_top(tester, 'TK-0921')));
+      expect(_top(tester, 'DK-0987'), lessThan(_top(tester, 'DK-0921')));
 
       expect(find.text('Shalwar Kameez · 2 pcs'), findsOneWidget);
       expect(find.text('Wash & wear, off-white'), findsOneWidget);
@@ -538,14 +538,14 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Show 4 earlier orders'), findsNothing);
       await tester.scrollUntilVisible(
-        find.text('TK-0802'),
+        find.text('DK-0802'),
         200,
         scrollable: find.descendant(
           of: find.byType(ListView),
           matching: find.byType(Scrollable),
         ),
       );
-      expect(find.text('TK-0802'), findsOneWidget);
+      expect(find.text('DK-0802'), findsOneWidget);
     });
 
     testWidgets('a customer with nothing saved is invited to start', (

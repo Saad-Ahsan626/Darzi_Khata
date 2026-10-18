@@ -139,7 +139,7 @@ class DatabaseSchema {
       address TEXT NOT NULL DEFAULT '',
       openingTime TEXT,
       closingTime TEXT,
-      orderPrefix TEXT NOT NULL DEFAULT 'TK-',
+      orderPrefix TEXT NOT NULL DEFAULT 'DK-',
       nextOrderNumber INTEGER NOT NULL DEFAULT 1,
       defaultUnit TEXT NOT NULL DEFAULT 'in'
     )

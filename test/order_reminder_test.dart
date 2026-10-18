@@ -37,7 +37,7 @@ String _message(Order order, {ShopSettings settings = _shop}) =>
     reminderMessage(
       order: order,
       customerName: 'Nida Aslam',
-      orderLabel: 'TK-1031',
+      orderLabel: 'DK-1031',
       settings: settings,
       today: _today,
     );
@@ -117,7 +117,7 @@ void main() {
     test('a ready order is ready for pickup, with the balance and hours', () {
       expect(
         _message(_order(status: 'Ready')),
-        'Assalam o Alaikum Nida Aslam. Your Kurta order (TK-1031) is ready '
+        'Assalam o Alaikum Nida Aslam. Your Kurta order (DK-1031) is ready '
         'for pickup at Hassan Tailors. Balance due: Rs 1,500. Shop timings '
         '11am–9pm.',
       );
@@ -126,7 +126,7 @@ void main() {
     test('an order in work gives its stage and expected date', () {
       expect(
         _message(_order(status: 'Stitching', paid: 3500)),
-        'Assalam o Alaikum Nida Aslam. Your Kurta order (TK-1031) at Hassan '
+        'Assalam o Alaikum Nida Aslam. Your Kurta order (DK-1031) at Hassan '
         'Tailors is being stitched. Expected delivery: 9 Oct.',
       );
     });
@@ -134,7 +134,7 @@ void main() {
     test('a late order in work does not promise a date already gone', () {
       expect(
         _message(_order(status: 'Cutting', due: DateTime(2026, 10, 2))),
-        'Assalam o Alaikum Nida Aslam. Your Kurta order (TK-1031) at Hassan '
+        'Assalam o Alaikum Nida Aslam. Your Kurta order (DK-1031) at Hassan '
         'Tailors is being cut. We will let you know as soon as it is ready. '
         'Balance due: Rs 1,500.',
       );
@@ -144,14 +144,14 @@ void main() {
       expect(
         _message(_order(status: 'Delivered')),
         'Assalam o Alaikum Nida Aslam. Rs 1,500 is still due on your Kurta '
-        'order (TK-1031) from Hassan Tailors. Thank you.',
+        'order (DK-1031) from Hassan Tailors. Thank you.',
       );
     });
 
     test('leaves out the shop name and hours until they are set', () {
       expect(
         _message(_order(status: 'Ready'), settings: const ShopSettings()),
-        'Assalam o Alaikum Nida Aslam. Your Kurta order (TK-1031) is ready '
+        'Assalam o Alaikum Nida Aslam. Your Kurta order (DK-1031) is ready '
         'for pickup. Balance due: Rs 1,500.',
       );
     });

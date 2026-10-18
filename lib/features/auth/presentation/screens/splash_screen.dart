@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tailor_khata/core/app_info.dart';
 import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/core/widgets/app_widgets.dart';
 import 'package:tailor_khata/features/auth/presentation/providers/startup_provider.dart';
@@ -167,7 +168,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           amount: _title.value,
           distance: 12,
           child: const Text(
-            'Tailor Khata',
+            appName,
             style: TextStyle(
               fontFamily: AppTypography.fontFamily,
               fontSize: 30,
@@ -231,7 +232,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         ),
         const SizedBox(height: AppSpacing.lg),
         const Text(
-          'Opening your records · v1.0.0',
+          'Opening your records · v$appVersion',
           style: TextStyle(
             fontFamily: AppTypography.fontFamily,
             fontFeatures: AppTypography.tabularFigures,

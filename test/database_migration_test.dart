@@ -207,7 +207,7 @@ void main() {
     expect(await db.getVersion(), DatabaseSchema.version);
     final settings = (await db.query('shop_settings')).single;
     expect(settings['nextOrderNumber'], 1);
-    expect(settings['orderPrefix'], 'TK-');
+    expect(settings['orderPrefix'], 'DK-');
     expect(settings['defaultUnit'], 'in');
   });
 

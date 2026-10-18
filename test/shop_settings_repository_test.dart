@@ -60,9 +60,9 @@ void main() {
 
   test('order numbers are shown with the prefix and four digits', () {
     const settings = ShopSettings();
-    expect(settings.orderLabel(42), 'TK-0042');
-    expect(settings.orderLabel(1042), 'TK-1042');
-    expect(settings.orderLabel(12345), 'TK-12345');
+    expect(settings.orderLabel(42), 'DK-0042');
+    expect(settings.orderLabel(1042), 'DK-1042');
+    expect(settings.orderLabel(12345), 'DK-12345');
     expect(const ShopSettings(orderPrefix: 'HT-').orderLabel(7), 'HT-0007');
   });
 }

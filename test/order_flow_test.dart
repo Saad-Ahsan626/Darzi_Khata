@@ -240,7 +240,7 @@ void main() {
       tester,
     ) async {
       await _pumpApp(tester, '/orders/order-1', orders: [_order()]);
-      expect(find.text('TK-0042'), findsOneWidget);
+      expect(find.text('DK-0042'), findsOneWidget);
       expect(find.text('Faisal Shah · 0300 412 8876'), findsOneWidget);
       expect(find.text('DUE 12 OCT · IN 8 DAYS'), findsOneWidget);
       expect(find.text('Rs 3,000'), findsOneWidget);
@@ -424,7 +424,7 @@ void main() {
       expect(link.path, '/923004128876');
       expect(
         link.queryParameters['text'],
-        'Assalam o Alaikum Faisal Shah. Your Shalwar Kameez order (TK-0042) '
+        'Assalam o Alaikum Faisal Shah. Your Shalwar Kameez order (DK-0042) '
         'is ready for pickup at Hassan Tailors. Balance due: Rs 2,000. Shop '
         'timings 11am–9pm.',
       );
@@ -435,7 +435,7 @@ void main() {
       await _tap(tester, find.text('Faisal Shah'));
       await _tap(tester, find.byTooltip('More'));
       await _tap(tester, find.text('Delete order'));
-      expect(find.text('Delete TK-0042?'), findsOneWidget);
+      expect(find.text('Delete DK-0042?'), findsOneWidget);
       await _tap(tester, find.text('Delete permanently'));
       expect(orders.writes, ['delete order order-1']);
       expect(find.text('No orders yet'), findsOneWidget);
@@ -488,7 +488,7 @@ void main() {
       final orders = await _pumpApp(tester, '/customers/${_older.id}');
       await _tap(tester, find.text('Create Order'));
       expect(find.text('Faisal Shah'), findsOneWidget);
-      expect(find.text('TK-0043'), findsOneWidget);
+      expect(find.text('DK-0043'), findsOneWidget);
       await tester.enterText(_field('Fabric'), 'Cotton, sky blue');
       await tester.enterText(_field('Total price'), '6500');
       await tester.enterText(_field('Advance paid'), '2000');

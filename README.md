@@ -1,8 +1,11 @@
-# Tailor Khata
+# Darzi Khata
 
 An offline Flutter application for tailor shops to manage customers, reuse
 garment measurements, track production and deliveries, and view outstanding
 balances in Pakistani rupees.
+
+The app is shown as **Darzi Khata**; the Dart package and database file keep
+the earlier name, `tailor_khata`. The design handoff still says "Tailor Khata".
 
 The app is under active development. Customer and order workflows use local
 SQLite storage. The redesign uses carbon black, white, grey olive, and bundled
@@ -14,13 +17,13 @@ screens are being redesigned incrementally in the following phases.
 
 | Area | Implemented | Remaining work |
 | --- | --- | --- |
-| Startup | Animated splash that opens the database, onboarding, guest entry | Persist guest choice; redesigned onboarding and welcome |
+| Startup | Animated splash that opens the database; on first launch a welcome and a three-page introduction, after which every launch opens Home | — |
 | Customers | Redesigned list, add/edit, customer page and delete; search, photos, notes, measurement profiles, order history | Filter on the order history |
 | Measurements | Grouped fields for seven garments, Formal/Casual profiles, in/cm, stitching note, editor with keypad and previous value | Editing garment field sets in Settings |
 | Orders | Redesigned list with All/Today/Upcoming/Overdue filters; new and edit form with pieces, fabric, cutter note and a linked measurement profile; order page with production timeline and payments; separate stage, payment and delivery steps; payment undo and removal; delete | Receipts; filters on the customer's order history |
 | Dashboard/revenue | Home with the month's billed, collected and outstanding money, work in progress, today's deliveries with Deliver/Update, overdue link; Revenue by this month, last month, year or custom dates with a six-month chart and the payments received, copied as CSV | Exporting to a file |
 | Design foundation | Tokens, Material theme, offline fonts, component library, glass navigation, debug preview | Full feature-screen layouts |
-| Login/settings | Placeholder screens; stored shop settings | Authentication, settings screen, language/unit preferences |
+| Settings | Shop profile, address, timings and order prefix; default measurement unit; the garment field list; about | Backup and restore; editing garment fields; accounts |
 | WhatsApp | Reminder sheet that opens WhatsApp with an editable message for the order's stage and balance; nothing is sent by the app | Confirmation message on new orders; Urdu text |
 | Invoices/backup/cloud | Planned | Export, restore, accounts, synchronization |
 
@@ -146,7 +149,7 @@ icons are dark by default (set in `main.dart`); the splash and carbon headers
 switch them to light.
 
 The splash plays once: the button mark is sewn on over 1.2 seconds and the
-screen fades to onboarding or the welcome screen. It opens the database
+screen fades to the welcome screen on first launch, or to Home after that. It opens the database
 meanwhile, shows a progress sweep only if that takes longer than 400ms, and
 with reduced motion shows the finished mark immediately.
 
@@ -198,7 +201,8 @@ status event and the sum of its payments. They change only through the
 operations that also write those rows: change status, deliver, record payment
 and delete payment. Editing an order's details does not touch them. Order
 numbers come from a counter in `shop_settings` and are not reused after a
-deletion; `ShopSettings.orderLabel` formats them as `TK-0042`.
+deletion; `ShopSettings.orderLabel` formats them as `DK-0042` (the prefix is set in
+Settings; databases created before the rename keep `TK-`).
 
 Customer deletion cascades to measurements/orders; order deletion cascades to
 payments and status events; measurement deletion clears an order's measurement
@@ -217,7 +221,8 @@ The garments and the fields each is measured by are listed in
 garment's field set is shown under "Other" rather than hidden.
 
 Photos are files in the app's documents directory. `shared_preferences` stores
-onboarding completion. `ownerId`/`syncStatus` reserve fields for future cloud work;
+whether the shop has been opened once (the `isFirstLaunch` key, which earlier
+versions set after onboarding, so those installs also open on Home). `ownerId`/`syncStatus` reserve fields for future cloud work;
 they do not implement synchronization or account isolation. Backup/restore is
 not yet available.
 
@@ -229,6 +234,7 @@ not yet available.
 | IDs/formatting | `uuid`, `intl` |
 | Photos/files | `image_picker`, `path_provider` |
 | Links | `url_launcher` (opens WhatsApp) |
+| App icon | `flutter_launcher_icons` (dev only; run `dart run flutter_launcher_icons` after changing `assets/icon/app_icon.png`) |
 | Development checks | `flutter_test`, `flutter_lints`, `sqflite_common_ffi` |
 
 ## Validation and known gaps
@@ -237,6 +243,7 @@ not yet available.
 flutter analyze --no-pub
 flutter test --no-pub \
   test/presentation_foundation_test.dart test/splash_screen_test.dart \
+  test/first_run_test.dart test/settings_screen_test.dart \
   test/customer_screens_test.dart test/customer_activity_test.dart \
   test/customer_repository_test.dart test/order_flow_test.dart \
   test/order_reminder_test.dart test/order_repository_test.dart \
@@ -282,7 +289,12 @@ waits for storage, the failure sheet and retry), the customer page (summary,
 measurement profiles, order history) and deletion. They also run the screens
 at 360px with larger text. The activity test covers the rules behind each
 customer's status line. The splash test covers the drawing sequence, the wait
-for slow storage, reduced motion and the retry after a failure.
+for slow storage, reduced motion and the retry after a failure. The first-run
+test covers where the splash leads on a new and a returning install, the
+stored launch flag, the welcome, paging through the introduction and skipping
+it. The settings test covers the shop profile (including a partial phone
+number), the order prefix preview, removing timings, cancelling, the default
+unit and the garment field list.
 
 The database tests run against SQLite through `sqflite_common_ffi`, each on its
 own temporary file opened with `DatabaseHelper.atPath`. The migration test
@@ -295,15 +307,18 @@ clears their orders and measurements from the lists the screens hold.
 Two older database tests may exist locally under `test/`; they remain ignored by
 Git. They use a persistent database and a fixed customer ID, so the insertion
 test can fail on repeated runs. Use the explicit test command above for repeatable
-checks. Screen tests for settings are still needed.
+checks.
 
 Important existing issues for subsequent feature work:
 
-- Shop settings are stored but have no screen yet, so reminders leave out the
-  shop name and hours until it exists.
+- There is no backup or restore yet; everything lives in one database file on
+  the device.
+- Lists show a spinner while loading rather than the skeleton rows in the
+  design (1z).
 
 These are feature/data-flow tasks; theme integration does not change their logic.
 Phase 1's visual foundation, the data model, the customer workflow, the
 measurement screens, the order and payment screens, Home and Revenue, and the
-animated splash are implemented. The remaining phases are onboarding, welcome,
-settings and the app icon, then complete end-to-end verification.
+animated splash, welcome, introduction, settings and app icon are implemented.
+The remaining phases are backup and restore, then complete end-to-end
+verification and release setup.

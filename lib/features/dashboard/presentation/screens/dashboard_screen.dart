@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:tailor_khata/core/app_info.dart';
 import 'package:tailor_khata/core/formatting/app_formats.dart';
 import 'package:tailor_khata/core/providers/clock_provider.dart';
 import 'package:tailor_khata/core/theme/design_tokens.dart';
@@ -310,7 +311,7 @@ class _Header extends StatelessWidget {
               ),
               const SizedBox(height: 3),
               Text(
-                shop.isEmpty ? 'Tailor Khata' : shop,
+                shop.isEmpty ? appName : shop,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: AppTypography.screenTitle.copyWith(

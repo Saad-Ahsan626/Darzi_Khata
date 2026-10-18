@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:tailor_khata/core/app_info.dart';
 import 'package:tailor_khata/core/routing/app_router.dart';
 import 'package:tailor_khata/core/theme/app_theme.dart';
 
@@ -24,7 +25,7 @@ class TailorKhataApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       restorationScopeId: 'tailor_khata_app',
-      title: 'Tailor Khata',
+      title: appName,
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
 

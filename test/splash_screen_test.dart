@@ -82,7 +82,7 @@ void main() {
 
     await tester.pump(const Duration(milliseconds: 400));
     _expectFinishedMark(tester);
-    expect(find.text('Tailor Khata'), findsOneWidget);
+    expect(find.text('Darzi Khata'), findsOneWidget);
     expect(find.text('OFFLINE LEDGER'), findsOneWidget);
 
     // Records opened long ago, so no progress sweep was ever shown.

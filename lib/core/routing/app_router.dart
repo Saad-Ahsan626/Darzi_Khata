@@ -7,7 +7,6 @@ import 'package:tailor_khata/core/shell/app_shell.dart';
 import 'package:tailor_khata/features/auth/presentation/screens/splash_screen.dart';
 import 'package:tailor_khata/features/auth/presentation/screens/onboarding_screen.dart';
 import 'package:tailor_khata/features/auth/presentation/screens/welcome_screen.dart';
-import 'package:tailor_khata/features/auth/presentation/screens/login_screen.dart';
 import 'package:tailor_khata/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:tailor_khata/features/customers/presentation/screens/customer_list_screen.dart';
 import 'package:tailor_khata/features/customers/presentation/screens/customer_detail_screen.dart';
@@ -16,6 +15,7 @@ import 'package:tailor_khata/features/measurements/presentation/screens/measurem
 import 'package:tailor_khata/features/orders/presentation/screens/order_list_screen.dart';
 import 'package:tailor_khata/features/orders/presentation/screens/order_detail_screen.dart';
 import 'package:tailor_khata/features/orders/presentation/screens/new_edit_order_screen.dart';
+import 'package:tailor_khata/features/settings/presentation/screens/garment_fields_screen.dart';
 import 'package:tailor_khata/features/settings/presentation/screens/settings_screen.dart';
 import 'package:tailor_khata/features/dashboard/presentation/screens/revenue_screen.dart';
 
@@ -47,7 +47,6 @@ GoRouter createAppRouter({String? initialLocation}) => GoRouter(
       pageBuilder: (context, state) =>
           _fadePage(context, state, const WelcomeScreen()),
     ),
-    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
 
     // Bottom Nav Shell
     ShellRoute(
@@ -131,6 +130,12 @@ GoRouter createAppRouter({String? initialLocation}) => GoRouter(
         GoRoute(
           path: '/settings',
           builder: (context, state) => const SettingsScreen(),
+          routes: [
+            GoRoute(
+              path: 'garments',
+              builder: (context, state) => const GarmentFieldsScreen(),
+            ),
+          ],
         ),
       ],
     ),

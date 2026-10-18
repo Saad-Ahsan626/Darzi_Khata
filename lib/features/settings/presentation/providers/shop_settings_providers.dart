@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tailor_khata/core/error/failures.dart';
 import 'package:tailor_khata/core/providers/database_provider.dart';
 import 'package:tailor_khata/core/usecase/usecase.dart';
 
@@ -38,3 +39,12 @@ final shopSettingsProvider = FutureProvider<ShopSettings>((ref) async {
     (settings) => settings,
   );
 });
+
+/// Saves the shop's settings, then reads them again. Resolves to why they
+/// could not be saved, or null.
+Future<Failure?> saveShopSettings(WidgetRef ref, ShopSettings settings) async {
+  final result = await ref.read(updateShopSettingsUsecaseProvider)(settings);
+  final failure = result.getLeft().toNullable();
+  if (failure == null) ref.invalidate(shopSettingsProvider);
+  return failure;
+}

@@ -17,6 +17,16 @@ class SewnButtonMark extends StatelessWidget {
     this.color = AppPalette.white,
   });
 
+  /// The logo: the button with its four holes, before it is sewn on.
+  const SewnButtonMark.logo({
+    super.key,
+    this.size = 96,
+    this.color = AppPalette.white,
+  }) : rim = 1,
+       holes = 1,
+       firstStitch = 0,
+       secondStitch = 0;
+
   final double size;
   final double rim;
   final double holes;

@@ -27,14 +27,42 @@ class ShopSettings extends Equatable {
     this.address = '',
     this.openingTime,
     this.closingTime,
-    this.orderPrefix = 'TK-',
+    this.orderPrefix = 'DK-',
     this.nextOrderNumber = 1,
     this.defaultUnit = MeasurementUnit.inches,
   });
 
-  /// The order number as shown to the shop, such as `TK-0042`.
+  /// The order number as shown to the shop, such as `DK-0042`.
   String orderLabel(int orderNumber) =>
       '$orderPrefix${orderNumber.toString().padLeft(4, '0')}';
+
+  /// Whether the shop has said when it opens and closes.
+  bool get hasHours => openingTime != null && closingTime != null;
+
+  /// A copy with the given values. Hours are replaced together by passing
+  /// [hours]; a null record clears them.
+  ShopSettings copyWith({
+    String? shopName,
+    String? ownerName,
+    String? phone,
+    String? address,
+    ({String opens, String closes})? Function()? hours,
+    String? orderPrefix,
+    MeasurementUnit? defaultUnit,
+  }) {
+    final newHours = hours?.call();
+    return ShopSettings(
+      shopName: shopName ?? this.shopName,
+      ownerName: ownerName ?? this.ownerName,
+      phone: phone ?? this.phone,
+      address: address ?? this.address,
+      openingTime: hours == null ? openingTime : newHours?.opens,
+      closingTime: hours == null ? closingTime : newHours?.closes,
+      orderPrefix: orderPrefix ?? this.orderPrefix,
+      nextOrderNumber: nextOrderNumber,
+      defaultUnit: defaultUnit ?? this.defaultUnit,
+    );
+  }
 
   @override
   List<Object?> get props => [
