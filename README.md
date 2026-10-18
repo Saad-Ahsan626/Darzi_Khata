@@ -17,11 +17,11 @@ screens are being redesigned incrementally in the following phases.
 | Startup | Animated splash that opens the database, onboarding, guest entry | Persist guest choice; redesigned onboarding and welcome |
 | Customers | Redesigned list, add/edit, customer page and delete; search, photos, notes, measurement profiles, order history | Filter on the order history |
 | Measurements | Grouped fields for seven garments, Formal/Casual profiles, in/cm, stitching note, editor with keypad and previous value | Editing garment field sets in Settings |
-| Orders | Create, due-date filters, status changes, delivery/payment confirmation; stored order numbers, payments and status history | Screens for payments, history, order numbers and pieces; general editing; measurement linking |
+| Orders | Redesigned list with All/Today/Upcoming/Overdue filters; new and edit form with pieces, fabric, cutter note and a linked measurement profile; order page with production timeline and payments; separate stage, payment and delivery steps; payment undo and removal; delete | Receipts; filters on the customer's order history |
 | Dashboard/revenue | Delivery list, balances, period summaries | New layouts and payment-date-based reporting |
 | Design foundation | Tokens, Material theme, offline fonts, component library, glass navigation, debug preview | Full feature-screen layouts |
 | Login/settings | Placeholder screens; stored shop settings | Authentication, settings screen, language/unit preferences |
-| WhatsApp | Buttons with placeholder feedback | Actual prepared-conversation integration |
+| WhatsApp | Reminder sheet that opens WhatsApp with an editable message for the order's stage and balance; nothing is sent by the app | Confirmation message on new orders; Urdu text |
 | Invoices/backup/cloud | Planned | Export, restore, accounts, synchronization |
 
 The interface is English-only. Previously stored optional Urdu customer names
@@ -228,6 +228,7 @@ not yet available.
 | Results/equality | `fpdart`, `equatable` |
 | IDs/formatting | `uuid`, `intl` |
 | Photos/files | `image_picker`, `path_provider` |
+| Links | `url_launcher` (opens WhatsApp) |
 | Development checks | `flutter_test`, `flutter_lints`, `sqflite_common_ffi` |
 
 ## Validation and known gaps
@@ -238,7 +239,8 @@ flutter test --no-pub \
   test/presentation_foundation_test.dart test/splash_screen_test.dart \
   test/customer_screens_test.dart test/customer_activity_test.dart \
   test/customer_repository_test.dart test/order_flow_test.dart \
-  test/order_repository_test.dart test/measurement_screen_test.dart \
+  test/order_reminder_test.dart test/order_repository_test.dart \
+  test/measurement_screen_test.dart \
   test/measurement_repository_test.dart test/measurement_profile_test.dart \
   test/shop_settings_repository_test.dart \
   test/database_migration_test.dart
@@ -249,9 +251,16 @@ the real app routes. They verify navigation/add/back behavior, keyboard and safe
 areas, fields, disabled/loading buttons, glass fallbacks, 360/390px widths with
 larger text, and preservation of stored customer names during English edits.
 
-The order flow tests use the same fixtures. They verify that the order screen
-asks for a stage change, a delivery or a payment as separate operations, and
-that an order started from a customer's page is saved for that customer.
+The order flow tests use the same fixtures. They cover the order page (money,
+stage and due date), changing the stage without touching payments, delivering
+with a balance or recording the payment first, a plain confirmation when
+nothing is owed, payments by method with undo, refusing more than the balance,
+the WhatsApp link and message, deleting, the list's counts, overdue filter and
+empty filters, and the order form: the customer it was started from, the linked
+measurement profile, the balance kept in view, required details, the advance
+limit, picking a customer, the prompt before leaving, and editing an order
+without changing its payments or number. The reminder test covers due-date
+sorting, each reminder message, the wa.me link and rupee input grouping.
 
 The measurement tests cover the grouped fields, the draft kept until "Save
 Profile", discarding, the editor's steps, fractions, keypad and previous value,
@@ -279,22 +288,17 @@ clears their orders and measurements from the lists the screens hold.
 Two older database tests may exist locally under `test/`; they remain ignored by
 Git. They use a persistent database and a fixed customer ID, so the insertion
 test can fail on repeated runs. Use the explicit test command above for repeatable
-checks. Screen tests for orders, the dashboard and settings are still needed.
+checks. Screen tests for the dashboard and settings are still needed.
 
 Important existing issues for subsequent feature work:
 
 - The dashboard and revenue screens still total paid amounts by order creation
   date; payment dates are stored but not yet used there.
-- Order saves show success before persistence completes; customer and
-  measurement saves wait for it.
-- Pieces, payment method and history, status times and shop settings are
-  stored but have no screens yet. Order numbers appear only in a customer's
-  order history.
-- New orders do not link a measurement record.
-- WhatsApp feedback does not send a message.
+- Shop settings are stored but have no screen yet, so reminders leave out the
+  shop name and hours until it exists.
 
 These are feature/data-flow tasks; theme integration does not change their logic.
 Phase 1's visual foundation, the data model, the customer workflow, the
-measurement screens and the animated splash are implemented. The remaining
-phases are dashboard, orders/payments, remaining screens, and complete
+measurement screens, the order and payment screens and the animated splash are
+implemented. The remaining phases are dashboard, remaining screens, and complete
 end-to-end verification.

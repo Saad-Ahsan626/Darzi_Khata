@@ -113,7 +113,16 @@ GoRouter createAppRouter({String? initialLocation}) => GoRouter(
             ),
             GoRoute(
               path: ':id',
-              builder: (context, state) => const OrderDetailScreen(),
+              builder: (context, state) =>
+                  OrderDetailScreen(orderId: state.pathParameters['id']!),
+              routes: [
+                GoRoute(
+                  path: 'edit',
+                  builder: (context, state) => NewEditOrderScreen(
+                    orderId: state.pathParameters['id'],
+                  ),
+                ),
+              ],
             ),
           ],
         ),

@@ -124,6 +124,7 @@ Future<bool> showSaveFailureSheet(
   BuildContext context, {
   required Failure failure,
   required DateTime at,
+  String title = "Couldn't save customer",
 }) async {
   final retry = await showModalBottomSheet<bool>(
     context: context,
@@ -138,7 +139,7 @@ Future<bool> showSaveFailureSheet(
           children: [
             const AppIconTile(icon: Icons.warning_amber_rounded),
             const SizedBox(height: AppSpacing.lg),
-            Text("Couldn't save customer", style: _modalTitle),
+            Text(title, style: _modalTitle),
             const SizedBox(height: AppSpacing.sm),
             Text(
               "The device storage didn't respond. Nothing was lost — your "

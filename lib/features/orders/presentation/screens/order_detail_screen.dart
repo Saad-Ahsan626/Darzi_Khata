@@ -1,101 +1,417 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:tailor_khata/core/error/failures.dart';
+import 'package:tailor_khata/core/formatting/app_formats.dart';
+import 'package:tailor_khata/core/providers/clock_provider.dart';
 import 'package:tailor_khata/core/theme/design_tokens.dart';
+import 'package:tailor_khata/core/widgets/app_widgets.dart';
+import 'package:tailor_khata/features/customers/domain/entities/customer.dart';
+import 'package:tailor_khata/features/customers/presentation/providers/customers_notifier.dart';
+import 'package:tailor_khata/features/measurements/domain/entities/measurement.dart';
+import 'package:tailor_khata/features/measurements/presentation/providers/measurements_notifier.dart';
+import 'package:tailor_khata/features/orders/domain/entities/order.dart';
+import 'package:tailor_khata/features/orders/domain/entities/order_status.dart';
+import 'package:tailor_khata/features/orders/domain/entities/order_status_event.dart';
+import 'package:tailor_khata/features/orders/domain/entities/order_timing.dart';
 import 'package:tailor_khata/features/orders/domain/entities/payment.dart';
 import 'package:tailor_khata/features/orders/presentation/providers/orders_notifier.dart';
-import 'package:tailor_khata/features/customers/presentation/providers/customers_notifier.dart';
-import 'package:tailor_khata/features/orders/presentation/widgets/status_stepper.dart';
+import 'package:tailor_khata/features/orders/presentation/widgets/order_sheets.dart';
+import 'package:tailor_khata/features/orders/presentation/widgets/production_stepper.dart';
+import 'package:tailor_khata/features/orders/presentation/widgets/whatsapp_reminder.dart';
+import 'package:tailor_khata/features/settings/domain/entities/shop_settings.dart';
+import 'package:tailor_khata/features/settings/presentation/providers/shop_settings_providers.dart';
 
-class OrderDetailScreen extends ConsumerWidget {
-  const OrderDetailScreen({super.key});
+final _dayMonth = DateFormat('d MMM');
+final _date = DateFormat('d MMM yyyy');
+final _dateTime = DateFormat('d MMM, h:mm a');
 
-  Future<int?> _showDeliveryConfirmation(BuildContext context, double balance) {
-    if (balance <= 0) {
-      // If already fully paid, just ask for normal confirmation
-      return showDialog<int>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text(
-            'Confirm Delivery',
-            style: TextStyle(
-              color: AppPalette.carbon,
-              fontFamily: AppTypography.fontFamily,
-            ),
+/// One order: what it is, its money, its production stage and the actions
+/// on it. Stage, payment and delivery are separate writes.
+class OrderDetailScreen extends ConsumerStatefulWidget {
+  const OrderDetailScreen({super.key, required this.orderId});
+
+  final String orderId;
+
+  @override
+  ConsumerState<OrderDetailScreen> createState() => _OrderDetailScreenState();
+}
+
+class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
+  /// A write is running; the actions wait for it.
+  bool _busy = false;
+
+  /// Deleted and on the way out.
+  bool _deleted = false;
+
+  OrdersNotifier get _orders => ref.read(ordersNotifierProvider.notifier);
+
+  Future<T> _run<T>(Future<T> Function() write) async {
+    setState(() => _busy = true);
+    try {
+      return await write();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  void _showFailure(Failure failure) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          failure is ValidationFailure
+              ? failure.message
+              : "Couldn't save the change. Please try again.",
+        ),
+      ),
+    );
+  }
+
+  String _balanceText(double balance) =>
+      balance > 0 ? 'Balance now ${formatRupees(balance)}' : 'Paid in full';
+
+  Future<void> _changeStatus(Order order) async {
+    final history =
+        ref.read(orderStatusHistoryProvider(order.id)).valueOrNull ??
+        const <OrderStatusEvent>[];
+    final status = await showChangeStatusSheet(
+      context,
+      order: order,
+      history: history,
+    );
+    if (status == null || !mounted) return;
+    final failure = await _run(() => _orders.changeStatus(order.id, status));
+    if (!mounted) return;
+    if (failure != null) return _showFailure(failure);
+    showAppToast(
+      context,
+      message: 'Moved to $status',
+      detail: order.balance > 0
+          ? '${formatRupees(order.balance)} still outstanding'
+          : null,
+    );
+  }
+
+  /// Records a payment and, when [thenDeliver], delivers the order after.
+  Future<void> _recordPayment(
+    Order order,
+    String subtitle, {
+    bool thenDeliver = false,
+  }) async {
+    final entry = await showRecordPaymentSheet(
+      context,
+      order: order,
+      subtitle: subtitle,
+    );
+    if (entry == null || !mounted) return;
+    final result = await _run(
+      () => _orders.recordPayment(order.id, entry.amount, entry.method),
+    );
+    if (!mounted) return;
+    if (result.getLeft().toNullable() case final failure?) {
+      return _showFailure(failure);
+    }
+    final payment = result.getRight().toNullable()!;
+    final balance = order.balance - payment.amount;
+
+    if (thenDeliver) {
+      final failure = await _run(() => _orders.deliverOrder(order.id));
+      if (!mounted) return;
+      if (failure != null) return _showFailure(failure);
+      showAppToast(
+        context,
+        message: 'Order delivered',
+        detail:
+            'Payment of ${formatRupees(payment.amount)} recorded · '
+            '${_balanceText(balance)}',
+      );
+      return;
+    }
+
+    // Undo stays on screen after this page may have closed, so it holds on
+    // to the notifier rather than reading it through this page.
+    final orders = _orders;
+    showAppToast(
+      context,
+      message: 'Payment of ${formatRupees(payment.amount)} recorded',
+      detail: '${_balanceText(balance)} · ${_dateTime.format(payment.paidAt)}',
+      actionLabel: 'Undo',
+      onAction: () => _undoPayment(orders, payment, order.balance),
+    );
+  }
+
+  Future<void> _undoPayment(
+    OrdersNotifier orders,
+    Payment payment,
+    double balanceBefore,
+  ) async {
+    final failure = await orders.deletePayment(payment.id);
+    if (!mounted) return;
+    if (failure != null) return _showFailure(failure);
+    showAppToast(
+      context,
+      message: 'Payment removed',
+      detail: 'Balance back to ${formatRupees(balanceBefore)}',
+    );
+  }
+
+  Future<void> _removePayment(Order order, Payment payment) async {
+    final remove = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remove this payment?'),
+        content: Text(
+          '${formatRupees(payment.amount)} received on '
+          '${_dateTime.format(payment.paidAt)} will be taken off this order '
+          'and added back to its balance.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Keep'),
           ),
-          content: const Text(
-            'Are you sure you want to mark this order as Delivered?\n\nOnce marked as Delivered, you cannot change its status again.',
-            style: TextStyle(
-              color: AppPalette.ink70,
-              fontFamily: AppTypography.fontFamily,
-            ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Remove payment'),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, 0), // 0 = Cancel
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: AppPalette.ink70),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(
-                ctx,
-                2,
-              ), // 2 = Mark delivered (no payment needed)
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppPalette.carbon,
-              ),
-              child: const Text(
-                'Confirm',
-                style: TextStyle(color: AppPalette.white),
-              ),
-            ),
-          ],
+        ],
+      ),
+    );
+    if (remove != true || !mounted) return;
+    final failure = await _run(() => _orders.deletePayment(payment.id));
+    if (!mounted) return;
+    if (failure != null) return _showFailure(failure);
+    showAppToast(
+      context,
+      message: 'Payment removed',
+      detail: 'Balance now ${formatRupees(order.balance + payment.amount)}',
+    );
+  }
+
+  Future<void> _deliver(
+    Order order,
+    String customerName,
+    String subtitle,
+  ) async {
+    final choice = await showDeliverDialog(
+      context,
+      order: order,
+      customerName: customerName,
+    );
+    if (!mounted) return;
+    switch (choice) {
+      case null:
+        return;
+      case DeliveryChoice.recordPaymentFirst:
+        return _recordPayment(order, subtitle, thenDeliver: true);
+      case DeliveryChoice.deliver:
+        final failure = await _run(() => _orders.deliverOrder(order.id));
+        if (!mounted) return;
+        if (failure != null) return _showFailure(failure);
+        showAppToast(
+          context,
+          message: 'Order delivered',
+          detail: order.balance > 0
+              ? '${formatRupees(order.balance)} stays outstanding'
+              : 'Paid in full',
+        );
+    }
+  }
+
+  Future<void> _delete(Order order, String orderLabel) async {
+    final confirmed = await showDeleteOrderDialog(
+      context,
+      order: order,
+      orderLabel: orderLabel,
+    );
+    if (!confirmed || !mounted) return;
+    final failure = await _run(() => _orders.deleteOrder(order.id));
+    if (!mounted) return;
+    if (failure != null) return _showFailure(failure);
+    setState(() => _deleted = true);
+    showAppToast(context, message: '$orderLabel deleted');
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/orders');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_deleted) return const Scaffold(backgroundColor: AppPalette.white);
+    final ordersAsync = ref.watch(ordersNotifierProvider);
+    final orders = ordersAsync.valueOrNull;
+    if (orders == null) {
+      return Scaffold(
+        backgroundColor: AppPalette.white,
+        body: Center(
+          child: ordersAsync.hasError
+              ? const AppFeedback.error(message: "Couldn't open this order.")
+              : const AppLoading(),
+        ),
+      );
+    }
+    final order = orders.where((o) => o.id == widget.orderId).firstOrNull;
+    if (order == null) {
+      return Scaffold(
+        backgroundColor: AppPalette.white,
+        appBar: AppBar(),
+        body: const Center(
+          child: AppFeedback(
+            title: 'Order not found',
+            message: 'This order is no longer saved on this device.',
+            icon: Icons.receipt_long_outlined,
+          ),
         ),
       );
     }
 
-    // If there is a pending balance
-    return showDialog<int>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text(
-          'Payment Collection',
-          style: TextStyle(
-            color: AppPalette.carbon,
-            fontFamily: AppTypography.fontFamily,
+    Customer? customer;
+    for (final saved
+        in ref.watch(customersNotifierProvider).valueOrNull ??
+            const <Customer>[]) {
+      if (saved.id == order.customerId) customer = saved;
+    }
+    Measurement? measurement;
+    for (final profile
+        in ref.watch(measurementsNotifierProvider).valueOrNull ??
+            const <Measurement>[]) {
+      if (profile.id == order.measurementId) measurement = profile;
+    }
+    final settings =
+        ref.watch(shopSettingsProvider).valueOrNull ?? const ShopSettings();
+    final history =
+        ref.watch(orderStatusHistoryProvider(order.id)).valueOrNull ??
+        const <OrderStatusEvent>[];
+    final payments =
+        ref.watch(orderPaymentsProvider(order.id)).valueOrNull ??
+        const <Payment>[];
+    final today = ref.watch(clockProvider)();
+
+    final customerName = customer?.name ?? 'Unknown customer';
+    final label = order.orderNumber == null
+        ? 'Order'
+        : settings.orderLabel(order.orderNumber!);
+    final subtitle = '$label · $customerName';
+
+    return Scaffold(
+      backgroundColor: AppPalette.white,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _Header(
+            order: order,
+            customer: customer,
+            orderLabel: label,
+            today: today,
+            onEdit: () => context.push('/orders/${order.id}/edit'),
+            onDelete: () => _delete(order, label),
+            onOpenCustomer: customer == null
+                ? null
+                : () => context.push('/customers/${order.customerId}'),
           ),
-        ),
-        content: Text(
-          'Remaining Balance: Rs ${balance.toStringAsFixed(0)}\n\nHas the customer paid the remaining balance?',
-          style: const TextStyle(
-            color: AppPalette.ink70,
-            fontFamily: AppTypography.fontFamily,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, 0), // 0 = Cancel
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: AppPalette.ink70),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.screenPadding,
+                AppSpacing.lg,
+                AppSpacing.screenPadding,
+                AppSpacing.xl,
+              ),
+              children: [
+                _MoneyRow(order: order),
+                const SizedBox(height: AppSpacing.md),
+                _InfoCard(
+                  rows: [
+                    _InfoRow(
+                      'Fabric',
+                      _orNone(order.fabric),
+                      muted: order.fabric?.trim().isEmpty ?? true,
+                    ),
+                    _InfoRow('Pieces', '${order.pieces}'),
+                    _InfoRow(
+                      'Measurements',
+                      measurement?.fitProfile ?? 'Not linked',
+                      linked: measurement != null,
+                      muted: measurement == null,
+                      onTap: () => context.push(
+                        Uri(
+                          path: '/customers/${order.customerId}/measurements',
+                          queryParameters: {
+                            'garment':
+                                measurement?.garmentType ?? order.garmentType,
+                            'fit': ?measurement?.fitProfile,
+                          },
+                        ).toString(),
+                      ),
+                    ),
+                    if (order.notes?.trim().isNotEmpty ?? false)
+                      _InfoRow('Cutter note', order.notes!.trim()),
+                    _InfoRow('Ordered', _date.format(order.createdAt)),
+                    if (order.deliveredAt case final delivered?)
+                      _InfoRow('Delivered', _date.format(delivered)),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                const _SectionRule('Production'),
+                const SizedBox(height: 14),
+                ProductionStepper(status: order.status),
+                const SizedBox(height: 10),
+                Text(
+                  _productionCaption(order, history, today),
+                  style: AppTypography.support.copyWith(
+                    fontSize: 11.5,
+                    fontFeatures: AppTypography.tabularFigures,
+                  ),
+                ),
+                const SizedBox(height: 22),
+                const _SectionRule('Payments'),
+                const SizedBox(height: AppSpacing.md),
+                if (payments.isEmpty)
+                  Text(
+                    'No payments recorded yet.',
+                    style: AppTypography.support.copyWith(fontSize: 12.5),
+                  )
+                else
+                  _InfoCard(
+                    rows: [
+                      for (final payment in payments)
+                        _InfoRow(
+                          [
+                            _dayMonth.format(payment.paidAt),
+                            payment.method.label,
+                            if (payment.isAdvance) 'advance',
+                          ].join(' · '),
+                          formatRupees(payment.amount),
+                          onTap: _busy
+                              ? null
+                              : () => _removePayment(order, payment),
+                        ),
+                    ],
+                  ),
+              ],
             ),
           ),
-          TextButton(
-            onPressed: () =>
-                Navigator.pop(ctx, 1), // 1 = Delivered but NOT Paid
-            child: const Text(
-              'Not Paid',
-              style: TextStyle(color: AppPalette.carbon),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, 2), // 2 = Delivered AND Paid
-            style: ElevatedButton.styleFrom(backgroundColor: AppPalette.carbon),
-            child: const Text(
-              'Paid & Deliver',
-              style: TextStyle(color: AppPalette.white),
+          _ActionBar(
+            order: order,
+            busy: _busy,
+            onChangeStatus: () => _changeStatus(order),
+            onRecordPayment: () => _recordPayment(order, subtitle),
+            onDeliver: () => _deliver(order, customerName, subtitle),
+            onRemind: () => showReminderSheet(
+              context,
+              customerName: customerName,
+              phone: customer?.phone,
+              message: reminderMessage(
+                order: order,
+                customerName: customerName,
+                orderLabel: order.orderNumber == null ? null : label,
+                settings: settings,
+                today: today,
+              ),
             ),
           ),
         ],
@@ -103,424 +419,551 @@ class OrderDetailScreen extends ConsumerWidget {
     );
   }
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final orderId = GoRouterState.of(context).pathParameters['id'];
-    final ordersAsync = ref.watch(ordersNotifierProvider);
+  String _orNone(String? text) =>
+      (text?.trim().isEmpty ?? true) ? 'Not noted' : text!.trim();
 
-    return Scaffold(
-      backgroundColor: AppPalette.white,
-      appBar: AppBar(
-        backgroundColor: AppPalette.carbon,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Row(
-            children: [Icon(Icons.chevron_left, color: AppPalette.white)],
-          ),
-          onPressed: () => context.pop(),
-        ),
-        title: ordersAsync.when(
-          data: (orders) {
-            final orderList = orders.where((o) => o.id == orderId).toList();
-            if (orderList.isEmpty) return const Text('');
-            return Text(
-              orderList.first.garmentType,
-              style: const TextStyle(
-                color: AppPalette.white,
-                fontFamily: AppTypography.fontFamily,
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
-            );
-          },
-          loading: () => const Text(''),
-          error: (e, s) =>
-              const Text('Error', style: TextStyle(color: AppPalette.white)),
-        ),
-      ),
-      body: ordersAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppPalette.carbon),
-        ),
-        error: (err, stack) => Center(child: Text('Error: $err')),
-        data: (orders) {
-          final orderList = orders.where((o) => o.id == orderId).toList();
-          if (orderList.isEmpty) {
-            return const Center(child: Text('Order not found'));
-          }
-          final order = orderList.first;
+  /// When the order reached its stage and how long it has been in work.
+  String _productionCaption(
+    Order order,
+    List<OrderStatusEvent> history,
+    DateTime today,
+  ) {
+    DateTime? entered;
+    for (final event in history.reversed) {
+      if (event.status == order.status) {
+        entered = event.changedAt;
+        break;
+      }
+    }
+    if (order.isDelivered) entered = order.deliveredAt ?? entered;
+    final started = history.isEmpty ? order.createdAt : history.first.changedAt;
+    final end = order.isDelivered ? (entered ?? today) : today;
+    final days = DateTime.utc(
+      end.year,
+      end.month,
+      end.day,
+    ).difference(DateTime.utc(started.year, started.month, started.day)).inDays;
+    final length = days <= 0
+        ? (order.isDelivered ? 'same day' : 'started today')
+        : '$days ${days == 1 ? 'day' : 'days'} in production';
+    final stage = order.isDelivered ? 'Delivered' : '${order.status} since';
+    return entered == null
+        ? '${order.status} · $length'
+        : '$stage ${_dateTime.format(entered)} · $length';
+  }
+}
 
-          final customersAsync = ref.watch(customersNotifierProvider);
+enum _OrderAction { edit, delete }
 
-          return Column(
-            children: [
-              // Header area
-              Container(
-                width: double.infinity,
-                color: AppPalette.carbon,
-                padding: const EdgeInsets.only(left: 56, right: 16, bottom: 16),
-                child: customersAsync.when(
-                  data: (customers) {
-                    final cList = customers
-                        .where((c) => c.id == order.customerId)
-                        .toList();
-                    final cName = cList.isNotEmpty
-                        ? cList.first.name
-                        : 'Unknown Customer';
-                    final cPhone = cList.isNotEmpty ? cList.first.phone : '';
-                    return Text(
-                      '$cName · $cPhone',
-                      style: const TextStyle(
-                        color: AppPalette.onCarbonMuted,
-                        fontFamily: AppTypography.fontFamily,
-                        fontSize: 13,
-                      ),
-                    );
-                  },
-                  loading: () => const Text(
-                    'Loading customer...',
-                    style: TextStyle(color: AppPalette.onCarbonMuted),
-                  ),
-                  error: (e, s) => const Text(
-                    'Customer error',
-                    style: TextStyle(color: AppPalette.white),
-                  ),
-                ),
-              ),
+class _Header extends StatelessWidget {
+  const _Header({
+    required this.order,
+    required this.customer,
+    required this.orderLabel,
+    required this.today,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onOpenCustomer,
+  });
 
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Info Card
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppPalette.white,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppPalette.lineStrong),
-                        ),
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Text(
-                                    'Fabric',
-                                    style: TextStyle(
-                                      color: AppPalette.ink70,
-                                      fontSize: 13,
-                                      fontFamily: AppTypography.fontFamily,
-                                    ),
-                                  ),
-                                  Text(
-                                    order.fabric?.isNotEmpty == true
-                                        ? order.fabric!
-                                        : 'Not specified',
-                                    style: const TextStyle(
-                                      color: AppPalette.carbon,
-                                      fontSize: 15,
-                                      fontFamily: AppTypography.fontFamily,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // Tape Divider
-                            Container(
-                              height: 7,
-                              decoration: const BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    color: AppPalette.oliveBorder,
-                                    width: 1.5,
-                                  ),
-                                ),
-                              ),
-                              child: CustomPaint(
-                                painter: _TapeDividerPainter(),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildFinancialColumn(
-                                      'Total',
-                                      'Rs ${order.totalAmount}',
-                                      AppPalette.carbon,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: _buildFinancialColumn(
-                                      'Advance',
-                                      'Rs ${order.paidAmount}',
-                                      AppPalette.carbon,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: _buildFinancialColumn(
-                                      'Balance',
-                                      'Rs ${order.totalAmount - order.paidAmount}',
-                                      (order.totalAmount - order.paidAmount) <=
-                                              0
-                                          ? AppPalette.oliveInk
-                                          : AppPalette.carbon,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
+  final Order order;
+  final Customer? customer;
+  final String orderLabel;
+  final DateTime today;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final VoidCallback? onOpenCustomer;
 
-                      StatusStepper(
-                        currentStatus: order.status,
-                        onStatusChanged: (newStatus) async {
-                          final orders = ref.read(
-                            ordersNotifierProvider.notifier,
-                          );
-                          // Production stages never change the paid amount;
-                          // only a delivery confirmed as paid settles it.
-                          if (newStatus != 'Delivered') {
-                            orders.changeStatus(order.id, newStatus);
-                            return;
-                          }
-                          final balance = order.totalAmount - order.paidAmount;
-                          final confirmed = await _showDeliveryConfirmation(
-                            context,
-                            balance,
-                          );
-                          if (confirmed == null || confirmed == 0) return;
-                          orders.deliverOrder(
-                            order.id,
-                            settleBalance: confirmed == 2,
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 32),
-
-                      // If order is Delivered but still has a balance, show Collect Payment button
-                      if (order.status == 'Delivered' &&
-                          (order.totalAmount - order.paidAmount) > 0)
-                        ElevatedButton(
-                          onPressed: () async {
-                            final balance =
-                                order.totalAmount - order.paidAmount;
-                            final confirmed = await showDialog<bool>(
-                              context: context,
-                              builder: (ctx) => AlertDialog(
-                                title: const Text(
-                                  'Collect Payment',
-                                  style: TextStyle(
-                                    color: AppPalette.carbon,
-                                    fontFamily: AppTypography.fontFamily,
-                                  ),
-                                ),
-                                content: Text(
-                                  'Collect the pending due of Rs ${balance.toStringAsFixed(0)}?',
-                                  style: const TextStyle(
-                                    color: AppPalette.ink70,
-                                    fontFamily: AppTypography.fontFamily,
-                                  ),
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(ctx, false),
-                                    child: const Text(
-                                      'Cancel',
-                                      style: TextStyle(color: AppPalette.ink70),
-                                    ),
-                                  ),
-                                  ElevatedButton(
-                                    onPressed: () => Navigator.pop(ctx, true),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppPalette.carbon,
-                                    ),
-                                    child: const Text(
-                                      'Mark as Paid',
-                                      style: TextStyle(color: AppPalette.white),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-
-                            if (confirmed == true) {
-                              ref
-                                  .read(ordersNotifierProvider.notifier)
-                                  .recordPayment(
-                                    order.id,
-                                    balance,
-                                    PaymentMethod.cash,
-                                  );
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppPalette.carbon,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: const Text(
-                            'Collect Due Amount',
-                            style: TextStyle(
-                              fontFamily: AppTypography.fontFamily,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: AppPalette.white,
-                            ),
-                          ),
-                        ),
-
-                      if (order.status == 'Delivered' &&
-                          (order.totalAmount - order.paidAmount) > 0)
-                        const SizedBox(height: 12),
-
-                      if (order.status != 'Delivered')
-                        ElevatedButton(
-                          onPressed: () async {
-                            final balance =
-                                order.totalAmount - order.paidAmount;
-                            final confirmed = await _showDeliveryConfirmation(
-                              context,
-                              balance,
-                            );
-                            if (confirmed == null || confirmed == 0) return;
-
-                            ref
-                                .read(ordersNotifierProvider.notifier)
-                                .deliverOrder(
-                                  order.id,
-                                  settleBalance: confirmed == 2,
-                                );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppPalette.carbon,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: const Text(
-                            'Mark as Delivered',
-                            style: TextStyle(
-                              fontFamily: AppTypography.fontFamily,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: AppPalette.white,
-                            ),
-                          ),
-                        ),
-                      if (order.status != 'Delivered')
-                        const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Reminder sent via WhatsApp'),
-                              backgroundColor: AppPalette.carbon,
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppPalette.oliveInk,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.chat_bubble,
-                              color: AppPalette.white,
-                              size: 20,
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              'Send Reminder',
-                              style: TextStyle(
-                                fontFamily: AppTypography.fontFamily,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: AppPalette.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
+  String get _when {
+    final date = _dayMonth.format(order.deliveryDate);
+    if (order.isDelivered) {
+      return 'Delivered ${_dayMonth.format(order.deliveredAt ?? order.deliveryDate)}';
+    }
+    final late = order.daysLate(today);
+    if (late > 0) return 'Overdue $late ${late == 1 ? 'day' : 'days'} · $date';
+    if (late == 0) return 'Deliver today · $date';
+    if (late == -1) return 'Due tomorrow · $date';
+    return 'Due $date · in ${-late} days';
   }
 
-  Widget _buildFinancialColumn(String label, String value, Color valueColor) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label.toUpperCase(),
-          style: const TextStyle(
-            color: AppPalette.ink70,
-            fontSize: 11,
-            fontFamily: AppTypography.fontFamily,
-            fontWeight: FontWeight.w600,
-          ),
+  @override
+  Widget build(BuildContext context) {
+    final phone = formatPhone(customer?.phone);
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Material(
+        color: AppPalette.carbon,
+        child: Stack(
+          children: [
+            const Positioned(
+              top: 0,
+              right: -20,
+              bottom: 0,
+              width: 140,
+              child: AppTickPattern(color: Color(0x0FFFFFFF)),
+            ),
+            SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.xs,
+                  AppSpacing.lg,
+                  20,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        AppBoxedIconButton(
+                          icon: Icons.chevron_left,
+                          label: 'Back',
+                          onCarbon: true,
+                          onPressed: () => context.pop(),
+                        ),
+                        Expanded(
+                          child: Text(
+                            orderLabel.toUpperCase(),
+                            textAlign: TextAlign.center,
+                            style: AppTypography.micro.copyWith(
+                              fontSize: 11.5,
+                              letterSpacing: 11.5 * 0.09,
+                              fontFeatures: AppTypography.tabularFigures,
+                              color: AppPalette.white.withValues(alpha: 0.6),
+                            ),
+                          ),
+                        ),
+                        PopupMenuButton<_OrderAction>(
+                          tooltip: 'More',
+                          icon: const Icon(Icons.more_vert, size: 20),
+                          style: AppBoxedIconButton.styleOf(onCarbon: true),
+                          onSelected: (action) => switch (action) {
+                            _OrderAction.edit => onEdit(),
+                            _OrderAction.delete => onDelete(),
+                          },
+                          itemBuilder: (context) => const [
+                            PopupMenuItem(
+                              value: _OrderAction.edit,
+                              child: Text('Edit order'),
+                            ),
+                            PopupMenuItem(
+                              value: _OrderAction.delete,
+                              child: Text('Delete order'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: AppSpacing.xs),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 14),
+                          Text(
+                            order.garmentType,
+                            style: AppTypography.title.copyWith(
+                              fontSize: 24,
+                              letterSpacing: 24 * -0.03,
+                              color: AppPalette.white,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          Semantics(
+                            button: onOpenCustomer != null,
+                            child: GestureDetector(
+                              onTap: onOpenCustomer,
+                              child: Text(
+                                [
+                                  customer?.name ?? 'Unknown customer',
+                                  if (phone.isNotEmpty) phone,
+                                ].join(' · '),
+                                style: AppTypography.support.copyWith(
+                                  fontFeatures: AppTypography.tabularFigures,
+                                  color: AppPalette.white.withValues(
+                                    alpha: 0.62,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          Wrap(
+                            spacing: AppSpacing.sm,
+                            runSpacing: AppSpacing.sm,
+                            children: [
+                              _HeaderBadge(
+                                order.status,
+                                filled: true,
+                                icon:
+                                    order.status == OrderStatus.ready ||
+                                        order.isDelivered
+                                    ? Icons.check
+                                    : null,
+                              ),
+                              _HeaderBadge(_when),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            color: valueColor,
-            fontSize: 16,
-            fontFamily: AppTypography.fontFamily,
-            fontFeatures: AppTypography.tabularFigures,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
 
-class _TapeDividerPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppPalette.oliveBorder
-      ..strokeWidth = 1.5;
+class _HeaderBadge extends StatelessWidget {
+  const _HeaderBadge(this.label, {this.filled = false, this.icon});
+  final String label;
+  final bool filled;
+  final IconData? icon;
 
-    for (double i = 0; i < size.width; i += 9) {
-      canvas.drawLine(
-        Offset(i, size.height - 3),
-        Offset(i, size.height),
-        paint,
-      );
-    }
+  @override
+  Widget build(BuildContext context) {
+    final ink = filled ? AppPalette.carbon : AppPalette.white;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: filled ? AppPalette.white : null,
+        borderRadius: BorderRadius.circular(6),
+        border: filled
+            ? null
+            : Border.all(color: AppPalette.white.withValues(alpha: 0.3)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4.5),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 13, color: ink),
+              const SizedBox(width: 5),
+            ],
+            Text(
+              label.toUpperCase(),
+              style: AppTypography.micro.copyWith(
+                fontSize: 10,
+                letterSpacing: 10 * 0.06,
+                fontFeatures: AppTypography.tabularFigures,
+                color: ink,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
+}
+
+class _MoneyRow extends StatelessWidget {
+  const _MoneyRow({required this.order});
+  final Order order;
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  Widget build(BuildContext context) {
+    Widget cell(String label, double amount, {bool owed = false}) => Expanded(
+      child: Container(
+        color: owed ? AppPalette.carbon : null,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: AppTypography.micro.copyWith(
+                fontSize: 9.5,
+                letterSpacing: 9.5 * 0.08,
+                color: owed
+                    ? AppPalette.white.withValues(alpha: 0.6)
+                    : AppPalette.ink55,
+              ),
+            ),
+            const SizedBox(height: 5),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                formatRupees(amount),
+                style: AppTypography.numberMd.copyWith(
+                  color: owed ? AppPalette.white : AppPalette.carbon,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    const divider = VerticalDivider(width: 1, color: AppPalette.line);
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border: Border.all(color: AppPalette.line),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            cell('TOTAL', order.totalAmount),
+            divider,
+            cell('PAID', order.paidAmount),
+            divider,
+            cell('OUTSTANDING', order.balance, owed: true),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoRow {
+  const _InfoRow(
+    this.label,
+    this.value, {
+    this.linked = false,
+    this.muted = false,
+    this.onTap,
+  });
+  final String label;
+  final String value;
+
+  /// Nothing recorded; the value says so in a lighter ink.
+  final bool muted;
+
+  /// Marks the value as linked to a saved record.
+  final bool linked;
+  final VoidCallback? onTap;
+}
+
+class _InfoCard extends StatelessWidget {
+  const _InfoCard({required this.rows});
+  final List<_InfoRow> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    final labelStyle = AppTypography.support.copyWith(color: AppPalette.ink55);
+    final valueStyle = AppTypography.body.copyWith(
+      fontSize: 13.5,
+      fontWeight: FontWeight.w600,
+      fontFeatures: AppTypography.tabularFigures,
+      color: AppPalette.carbon,
+    );
+    final shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(AppRadii.card),
+      side: const BorderSide(color: AppPalette.line),
+    );
+    return Material(
+      color: AppPalette.white,
+      shape: shape,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final (index, row) in rows.indexed) ...[
+            if (index > 0)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 14),
+                child: AppDashedLine(),
+              ),
+            InkWell(
+              onTap: row.onTap,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minHeight: AppSizing.minHitTarget,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: Text(row.label, style: labelStyle)),
+                        const SizedBox(width: AppSpacing.md),
+                        ConstrainedBox(
+                          // Values sit at the right edge, wrapping before
+                          // they crowd the label.
+                          constraints: BoxConstraints(
+                            maxWidth: constraints.maxWidth * 0.62,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  row.value,
+                                  textAlign: TextAlign.right,
+                                  style: row.muted
+                                      ? valueStyle.copyWith(
+                                          fontWeight: FontWeight.w500,
+                                          color: AppPalette.ink55,
+                                        )
+                                      : valueStyle,
+                                ),
+                              ),
+                              if (row.linked) ...[
+                                const SizedBox(width: 7),
+                                const AppStatusBadge(
+                                  label: 'Linked',
+                                  tone: AppBadgeTone.olive,
+                                ),
+                              ],
+                              if (row.onTap != null) ...[
+                                const SizedBox(width: AppSpacing.xs),
+                                const Icon(
+                                  Icons.chevron_right,
+                                  size: 18,
+                                  color: AppPalette.ink45,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// An uppercase label followed by a measuring-tape rule.
+class _SectionRule extends StatelessWidget {
+  const _SectionRule(this.label);
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Text(
+        label.toUpperCase(),
+        style: AppTypography.sectionLabel.copyWith(
+          fontSize: 10.5,
+          letterSpacing: 10.5 * 0.11,
+          color: AppPalette.ink55,
+        ),
+      ),
+      const SizedBox(width: 10),
+      const Expanded(
+        child: SizedBox(
+          height: 7,
+          child: AppTickPattern(
+            color: Color.fromRGBO(23, 25, 24, 0.22),
+            spacing: 7,
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+class _ActionBar extends StatelessWidget {
+  const _ActionBar({
+    required this.order,
+    required this.busy,
+    required this.onChangeStatus,
+    required this.onRecordPayment,
+    required this.onDeliver,
+    required this.onRemind,
+  });
+
+  final Order order;
+  final bool busy;
+  final VoidCallback onChangeStatus;
+  final VoidCallback onRecordPayment;
+  final VoidCallback onDeliver;
+  final VoidCallback onRemind;
+
+  @override
+  Widget build(BuildContext context) {
+    final owed = order.balance > 0;
+    VoidCallback? unlessBusy(VoidCallback action) => busy ? null : action;
+    final recordPayment = AppButton(
+      label: 'Record Payment',
+      onPressed: owed ? unlessBusy(onRecordPayment) : null,
+    );
+    final remind = AppButton(
+      label: 'Reminder',
+      icon: Icons.chat_bubble_outline,
+      variant: AppButtonVariant.outlined,
+      onPressed: unlessBusy(onRemind),
+    );
+
+    final List<List<Widget>> rows;
+    if (!order.isDelivered) {
+      rows = [
+        [
+          AppButton(
+            label: 'Change Status',
+            variant: AppButtonVariant.outlined,
+            onPressed: unlessBusy(onChangeStatus),
+          ),
+          recordPayment,
+        ],
+        [
+          AppButton(
+            label: 'Mark Delivered',
+            icon: Icons.check,
+            variant: AppButtonVariant.olive,
+            onPressed: unlessBusy(onDeliver),
+          ),
+          remind,
+        ],
+      ];
+    } else if (owed) {
+      rows = [
+        [remind, recordPayment],
+      ];
+    } else {
+      return const SizedBox.shrink();
+    }
+
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: AppPalette.white,
+        border: Border(top: BorderSide(color: AppPalette.line)),
+      ),
+      child: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.only(bottom: AppSpacing.md),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screenPadding,
+            14,
+            AppSpacing.screenPadding,
+            0,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final (index, row) in rows.indexed) ...[
+                if (index > 0) const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(child: row[0]),
+                    const SizedBox(width: 10),
+                    Expanded(child: row[1]),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

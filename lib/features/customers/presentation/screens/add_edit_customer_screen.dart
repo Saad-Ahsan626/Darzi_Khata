@@ -193,7 +193,8 @@ class _AddEditCustomerScreenState extends ConsumerState<AddEditCustomerScreen> {
           ),
         ),
       );
-      context.pop();
+      // A new customer's id lets the screen that asked for them pick them.
+      context.pop(_customerId);
       return;
     }
     final retry = await showSaveFailureSheet(
