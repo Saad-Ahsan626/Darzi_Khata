@@ -110,6 +110,18 @@ Future<bool> showDeleteCustomerDialog(
               icon: Icons.delete_outline,
               onPressed: () => Navigator.pop(context, true),
             ),
+            const SizedBox(height: AppSpacing.md),
+            SizedBox(
+              width: double.infinity,
+              child: Text(
+                'Export a backup first from Settings → Data',
+                textAlign: TextAlign.center,
+                style: AppTypography.support.copyWith(
+                  fontSize: 11.5,
+                  color: AppPalette.ink55,
+                ),
+              ),
+            ),
           ],
         ),
       ),

@@ -23,7 +23,7 @@ screens are being redesigned incrementally in the following phases.
 | Orders | Redesigned list with All/Today/Upcoming/Overdue filters; new and edit form with pieces, fabric, cutter note and a linked measurement profile; order page with production timeline and payments; separate stage, payment and delivery steps; payment undo and removal; delete | Receipts; filters on the customer's order history |
 | Dashboard/revenue | Home with the month's billed, collected and outstanding money, work in progress, today's deliveries with Deliver/Update, overdue link; Revenue by this month, last month, year or custom dates with a six-month chart and the payments received, copied as CSV | Exporting to a file |
 | Design foundation | Tokens, Material theme, offline fonts, component library, glass navigation, debug preview | Full feature-screen layouts |
-| Settings | Shop profile, address, timings and order prefix; default measurement unit; the garment field list; about | Backup and restore; editing garment fields; accounts |
+| Settings | Shop profile, address, timings and order prefix; default measurement unit; the garment field list; backup to a shared file and restore from one; about | Editing garment fields; accounts |
 | WhatsApp | Reminder sheet that opens WhatsApp with an editable message for the order's stage and balance; nothing is sent by the app | Confirmation message on new orders; Urdu text |
 | Invoices/backup/cloud | Planned | Export, restore, accounts, synchronization |
 
@@ -223,8 +223,23 @@ garment's field set is shown under "Other" rather than hidden.
 Photos are files in the app's documents directory. `shared_preferences` stores
 whether the shop has been opened once (the `isFirstLaunch` key, which earlier
 versions set after onboarding, so those installs also open on Home). `ownerId`/`syncStatus` reserve fields for future cloud work;
-they do not implement synchronization or account isolation. Backup/restore is
-not yet available.
+they do not implement synchronization or account isolation.
+
+Settings → Data makes a backup: a zip named `DarziKhata-backup-<date>.zip`
+holding a copy of the database (`records.db`), the customers' photos
+(`photos/`) and a manifest (`darzi-khata-backup.json`: app, format, schema
+version, date, counts). It goes out through the phone's share sheet, to
+WhatsApp, Drive, email or Files; the date it was last shared is kept in
+`shared_preferences`. The database is closed for the moment it is copied
+(`DatabaseHelper.whileClosed`), so the copy is never half-written.
+
+Restore takes a picked file, unpacks it into the cache and checks it before
+anything changes: it must be a zip with the manifest, a SQLite database no newer
+than this app's schema, and customers and orders tables. The shop then sees
+what the backup holds against what is on the device and confirms. The current
+database is kept aside, the backup's is put in its place and opened, which
+upgrades backups from older versions; if that fails, the kept copy is put back
+and nothing changes. Photos from the backup are written back alongside.
 
 | Purpose | Packages |
 | --- | --- |
@@ -233,6 +248,7 @@ not yet available.
 | Results/equality | `fpdart`, `equatable` |
 | IDs/formatting | `uuid`, `intl` |
 | Photos/files | `image_picker`, `path_provider` |
+| Backups | `archive` (zip), `share_plus` (share sheet), `file_picker` (choosing a backup) |
 | Links | `url_launcher` (opens WhatsApp) |
 | App icon | `flutter_launcher_icons` (dev only; run `dart run flutter_launcher_icons` after changing `assets/icon/app_icon.png`) |
 | Development checks | `flutter_test`, `flutter_lints`, `sqflite_common_ffi` |
@@ -244,6 +260,7 @@ flutter analyze --no-pub
 flutter test --no-pub \
   test/presentation_foundation_test.dart test/splash_screen_test.dart \
   test/first_run_test.dart test/settings_screen_test.dart \
+  test/backup_service_test.dart test/backup_screen_test.dart \
   test/customer_screens_test.dart test/customer_activity_test.dart \
   test/customer_repository_test.dart test/order_flow_test.dart \
   test/order_reminder_test.dart test/order_repository_test.dart \
@@ -296,6 +313,15 @@ it. The settings test covers the shop profile (including a partial phone
 number), the order prefix preview, removing timings, cancelling, the default
 unit and the garment field list.
 
+The backup service test works on real SQLite files: what a backup holds, a
+restore bringing back records and photos after they changed, refusing other
+files, other zips and backups from a newer version, a backup that cannot be
+upgraded leaving the records untouched, and reads waiting while the file is
+closed. The backup screen test covers sharing and remembering a backup, a
+closed share sheet, the restore confirmation with its counts, reloading every
+screen and opening Home after a restore, keeping the current records, a file
+that is not a backup, and choosing no file.
+
 The database tests run against SQLite through `sqflite_common_ffi`, each on its
 own temporary file opened with `DatabaseHelper.atPath`. The migration test
 builds a version 3 database, upgrades it, and checks the converted data and
@@ -311,8 +337,6 @@ checks.
 
 Important existing issues for subsequent feature work:
 
-- There is no backup or restore yet; everything lives in one database file on
-  the device.
 - Lists show a spinner while loading rather than the skeleton rows in the
   design (1z).
 
@@ -320,5 +344,5 @@ These are feature/data-flow tasks; theme integration does not change their logic
 Phase 1's visual foundation, the data model, the customer workflow, the
 measurement screens, the order and payment screens, Home and Revenue, and the
 animated splash, welcome, introduction, settings and app icon are implemented.
-The remaining phases are backup and restore, then complete end-to-end
-verification and release setup.
+Backup and restore are implemented too. The remaining phase is complete
+end-to-end verification and release setup.

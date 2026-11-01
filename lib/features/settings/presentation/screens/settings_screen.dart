@@ -2,13 +2,22 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:tailor_khata/core/app_info.dart';
 import 'package:tailor_khata/core/formatting/app_formats.dart';
+import 'package:tailor_khata/core/providers/clock_provider.dart';
 import 'package:tailor_khata/core/theme/design_tokens.dart';
 import 'package:tailor_khata/core/widgets/app_widgets.dart';
 import 'package:tailor_khata/features/auth/presentation/widgets/sewn_button_mark.dart';
+import 'package:tailor_khata/features/backup/data/backup_service.dart';
+import 'package:tailor_khata/features/backup/domain/backup_summary.dart';
+import 'package:tailor_khata/features/backup/presentation/backup_providers.dart';
+import 'package:tailor_khata/features/backup/presentation/restore_dialog.dart';
+import 'package:tailor_khata/features/customers/presentation/providers/customers_notifier.dart';
+import 'package:tailor_khata/features/measurements/presentation/providers/measurements_notifier.dart';
 import 'package:tailor_khata/features/measurements/domain/entities/garment_template.dart';
 import 'package:tailor_khata/features/measurements/domain/entities/measurement_unit.dart';
+import 'package:tailor_khata/features/orders/presentation/providers/orders_notifier.dart';
 import 'package:tailor_khata/features/settings/domain/entities/shop_settings.dart';
 import 'package:tailor_khata/features/settings/presentation/providers/shop_settings_providers.dart';
 import 'package:tailor_khata/features/settings/presentation/widgets/settings_sheets.dart';
@@ -136,6 +145,8 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
+                  const _Heading('Data'),
+                  const _DataSection(),
                   const SizedBox(height: 14),
                   _AboutCard(onAbout: () => _showAbout(context)),
                   if (kDebugMode) ...[
@@ -257,6 +268,164 @@ class _ProfileCard extends StatelessWidget {
   }
 }
 
+enum _Busy { none, backingUp, checking, restoring }
+
+/// Backing up to a shared file, and restoring from one.
+class _DataSection extends ConsumerStatefulWidget {
+  const _DataSection();
+
+  @override
+  ConsumerState<_DataSection> createState() => _DataSectionState();
+}
+
+class _DataSectionState extends ConsumerState<_DataSection> {
+  _Busy _busy = _Busy.none;
+
+  void _setBusy(_Busy busy) {
+    if (mounted) setState(() => _busy = busy);
+  }
+
+  void _explain(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  static String _plural(int count, String one, String many) =>
+      '$count ${count == 1 ? one : many}';
+
+  static String _counts(BackupSummary summary) =>
+      '${_plural(summary.customers, 'customer', 'customers')} · '
+      '${_plural(summary.orders, 'order', 'orders')}';
+
+  Future<void> _backup() async {
+    final now = ref.read(clockProvider)();
+    _setBusy(_Busy.backingUp);
+    try {
+      final backup = await ref.read(backupServiceProvider).create(now);
+      final shared = await ref.read(shareBackupProvider)(
+        backup.file,
+        '$appName backup · ${DateFormat('d MMM yyyy').format(now)}',
+      );
+      if (!shared) return;
+      await ref.read(backupPreferencesProvider).markBackedUp(now);
+      ref.invalidate(lastBackupProvider);
+      if (mounted) {
+        showAppToast(
+          context,
+          message: 'Backup shared',
+          detail: _counts(backup.summary),
+        );
+      }
+    } on Exception {
+      _explain("Couldn't make the backup. Please try again.");
+    } finally {
+      _setBusy(_Busy.none);
+    }
+  }
+
+  /// How many customers and orders are on this device, or null if they
+  /// cannot be read.
+  Future<({int customers, int orders})?> _currentCounts() async {
+    try {
+      final customers = await ref.read(customersNotifierProvider.future);
+      final orders = await ref.read(ordersNotifierProvider.future);
+      return (customers: customers.length, orders: orders.length);
+    } on Exception {
+      return null;
+    }
+  }
+
+  Future<void> _restore() async {
+    final service = ref.read(backupServiceProvider);
+    final picked = await ref.read(pickBackupProvider)();
+    if (picked == null || !mounted) return;
+
+    _setBusy(_Busy.checking);
+    final PreparedRestore prepared;
+    try {
+      prepared = await service.prepare(picked);
+    } on BackupException catch (error) {
+      return _explain(error.message);
+    } on Exception {
+      return _explain("Couldn't read that file. Please try again.");
+    } finally {
+      _setBusy(_Busy.none);
+    }
+
+    final current = await _currentCounts();
+    if (!mounted) return;
+    final confirmed = await showRestoreDialog(
+      context,
+      backup: prepared.summary,
+      current: current,
+    );
+    if (!confirmed || !mounted) return;
+
+    _setBusy(_Busy.restoring);
+    try {
+      await service.restore(prepared);
+    } on BackupException catch (error) {
+      return _explain(error.message);
+    } on Exception {
+      return _explain("Couldn't restore the backup. Nothing was changed.");
+    } finally {
+      _setBusy(_Busy.none);
+    }
+
+    // Everything on screen was read from the records just replaced.
+    ref
+      ..invalidate(customersNotifierProvider)
+      ..invalidate(ordersNotifierProvider)
+      ..invalidate(measurementsNotifierProvider)
+      ..invalidate(shopSettingsProvider);
+    if (!mounted) return;
+    showAppToast(
+      context,
+      message: 'Backup restored',
+      detail: _counts(prepared.summary),
+    );
+    context.go('/home');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final last = ref.watch(lastBackupProvider).valueOrNull;
+    final customers = ref.watch(customersNotifierProvider).valueOrNull;
+    final idle = _busy == _Busy.none;
+    final backupDetail = [
+      last == null
+          ? 'Not backed up yet'
+          : 'Last backup ${DateFormat('d MMM').format(last)}',
+      if (customers != null) _plural(customers.length, 'customer', 'customers'),
+    ].join(' · ');
+
+    return _Group(
+      rows: [
+        _Row(
+          leading: Icons.file_download_outlined,
+          label: 'Backup & export',
+          detail: _busy == _Busy.backingUp
+              ? 'Preparing the backup…'
+              : backupDetail,
+          onTap: idle ? _backup : null,
+        ),
+        _Row(
+          leading: Icons.file_upload_outlined,
+          label: 'Restore from file',
+          detail: switch (_busy) {
+            _Busy.checking => 'Checking the file…',
+            _Busy.restoring => 'Restoring…',
+            _ => 'Replaces everything on this device',
+          },
+          onTap: idle ? _restore : null,
+        ),
+      ],
+    );
+  }
+}
+
 class _Heading extends StatelessWidget {
   const _Heading(this.label);
   final String label;
@@ -278,12 +447,14 @@ class _Heading extends StatelessWidget {
 class _Row {
   const _Row({
     required this.label,
+    this.leading,
     this.detail,
     this.value,
     this.trailing,
     this.onTap,
   });
 
+  final IconData? leading;
   final String label;
   final String? detail;
   final String? value;
@@ -324,6 +495,10 @@ class _Group extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
+                      if (row.leading case final icon?) ...[
+                        Icon(icon, size: 20, color: AppPalette.ink70),
+                        const SizedBox(width: AppSpacing.md),
+                      ],
                       Expanded(
                         flex: 3,
                         child: Column(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:tailor_khata/core/database/database_migrations.dart';
@@ -6,8 +8,14 @@ import 'package:tailor_khata/core/database/database_schema.dart';
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
 
+  /// The app's database file, kept under its original name.
+  static const fileName = 'tailor_khata.db';
+
   final String? _path;
   Database? _database;
+
+  /// Set while [whileClosed] has the file; reads wait for it.
+  Completer<void>? _closedFor;
 
   DatabaseHelper._init([this._path]);
 
@@ -16,16 +24,45 @@ class DatabaseHelper {
   factory DatabaseHelper.atPath(String path) => DatabaseHelper._init(path);
 
   Future<Database> get database async {
+    await _untilReopened();
     if (_database != null) return _database!;
-    _database = await _initDB('tailor_khata.db');
+    _database = await _initDB();
     return _database!;
   }
 
-  Future<Database> _initDB(String filePath) async {
-    final path = _path ?? join(await getDatabasesPath(), filePath);
+  Future<void> _untilReopened() async {
+    for (var closed = _closedFor; closed != null; closed = _closedFor) {
+      await closed.future;
+    }
+  }
 
+  /// Where the database file is.
+  Future<String> get filePath async =>
+      _path ?? join(await getDatabasesPath(), fileName);
+
+  /// Closes the database while [action] works on its file, such as copying
+  /// it or replacing it, then opens it again, upgrading it if needed.
+  /// Anything that asks for the database meanwhile waits.
+  Future<void> whileClosed(Future<void> Function(String path) action) async {
+    // Taken before the first await, so a read asked for right after this
+    // call already waits. An earlier holder finishes first.
+    final earlier = _closedFor;
+    final closed = _closedFor = Completer<void>();
+    try {
+      if (earlier != null) await earlier.future;
+      await _database?.close();
+      _database = null;
+      await action(await filePath);
+      _database = await _initDB();
+    } finally {
+      if (identical(_closedFor, closed)) _closedFor = null;
+      closed.complete();
+    }
+  }
+
+  Future<Database> _initDB() async {
     return await openDatabase(
-      path,
+      await filePath,
       version: DatabaseSchema.version,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
